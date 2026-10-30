@@ -92,6 +92,7 @@ ul.reasons{margin:6px 0;padding-left:18px}ul.reasons li{margin:3px 0}
  <a href="#team" data-t="team"><b>👕</b>球隊</a>
  <a href="#rank" data-t="rank"><b>📊</b>排行</a>
  <a href="#acc" data-t="acc"><b>🎯</b>準確度</a>
+ <a href="#sim" data-t="sim"><b>🧪</b>模擬</a>
 </nav>
 <script>
 let LANG='en';try{localStorage.removeItem('lang')}catch(e){}
@@ -133,7 +134,7 @@ function i18n(){
 }
 function updHeader(){$('#upd').textContent=(LANG=='en'?'Updated: ':'數據更新：')+stamp(D.updated)+(LANG=='en'?' (MYT)':'（馬來西亞時間）')+(D.last_check?(LANG=='en'?' · last check ':' · 最後檢查 ')+stamp(D.last_check):'');$('#lang').textContent=LANG=='en'?'中文':'EN';
   document.querySelector('header h1').firstChild.nodeValue=LANG=='en'?'Premier League Board ':'英超數據板 ';
-  document.querySelectorAll('nav.tabs a').forEach(a=>{a.lastChild.nodeValue=LANG=='en'?{week:'Week',table:'Table',team:'Teams',rank:'Rankings',acc:'Accuracy'}[a.dataset.t]:{week:'本週',table:'積分榜',team:'球隊',rank:'排行',acc:'準確度'}[a.dataset.t]});}
+  document.querySelectorAll('nav.tabs a').forEach(a=>{a.lastChild.nodeValue=LANG=='en'?{week:'Week',table:'Table',team:'Teams',rank:'Rankings',acc:'Accuracy',sim:'Sim'}[a.dataset.t]:{week:'本週',table:'積分榜',team:'球隊',rank:'排行',acc:'準確度',sim:'模擬'}[a.dataset.t]});}
 
 const COL={ARS:'#db0007',MCI:'#6cabdd',CHE:'#034694',LIV:'#c8102e',MUN:'#da291c',TOT:'#132257',AVL:'#670e36',BHA:'#0057b8',BOU:'#b50e12',BRE:'#e30613',COC:'#59cbe8',CRY:'#1b458f',EVE:'#003399',FUL:'#222',HUL:'#f5a12d',IPS:'#3a64a3',LEE:'#ffcd00',NEW:'#241f20',NFO:'#dd0000',SUN:'#eb172b'};
 const DARKTXT={LEE:1,HUL:1,COC:1,MCI:1};
@@ -161,7 +162,7 @@ window.addEventListener('hashchange',route);
 function route(){
   const h=(location.hash||'#week').slice(1).split('/');
   document.querySelectorAll('nav.tabs a').forEach(a=>a.classList.toggle('on',a.dataset.t===h[0]));
-  ({week:vWeek,table:vTable,team:vTeam,rank:vRank,acc:vAcc}[h[0]]||vWeek)(h[1]);
+  ({week:vWeek,table:vTable,team:vTeam,rank:vRank,acc:vAcc,sim:vSim}[h[0]]||vWeek)(h[1]);
   window.scrollTo(0,0);
   i18n();
 }
@@ -341,6 +342,33 @@ function vAcc(){
   for(const r of rows.sort((a,b)=>b.g.start-a.g.start)){const g=r.g;
     h+=`<a class="gl" href="#week/${g.round}" style="color:inherit;text-decoration:none"><span class="small mute">${md(g.start)}</span><span>${nm(g.home)} <b class="num">${g.ft[0]}-${g.ft[1]}</b> ${nm(g.away)}<div class="xs mute">預測 ${r.v.score[0]} · 主${Math.round(r.v.p[0])}/和${Math.round(r.v.p[1])}/客${Math.round(r.v.p[2])}</div></span><span class="xs mute">角${f1(sum(r.v.c))}→${sum(g.c)}</span><span class="res ${r.ok?'W':'L'}">${r.ok?'✓':'✗'}</span></a>`;}
   app.innerHTML=h+'</div>'+learnH;
+}
+
+/* ---------- paper trading ---------- */
+function vSim(){
+  const P=D.paper||{},en=LANG=='en',T=P.total||{n:0};
+  const MK={'1X2':['Win/draw/loss','勝和負'],'OU2.5':['Over/under 2.5','大小2.5球'],'BTTS':['Both teams score','兩隊入球'],corners:['Corners line','角球大小'],cards:['Cards line','黃牌大小']};
+  const pct=x=>x==null?'–':(x>0?'+':'')+Math.round(x*100)+'%';
+  const u=x=>(x>0?'+':'')+(+x).toFixed(2);
+  let h=`<div class="card pad small" style="border-color:var(--warn)">${en?'⚠️ Simulation only — no real money. A virtual 1-unit bet is placed whenever the AI\'s probability beats the bookmaker\'s odds by at least '+Math.round((P.edge||0.05)*100)+'%. Small samples swing wildly; this is a test of whether the AI has any edge, not advice.':'⚠️ 只是模擬，不涉及真錢。每當 AI 的機率比莊家賠率反映的高出 '+Math.round((P.edge||0.05)*100)+'% 以上，就虛擬下注 1 注。樣本少時結果波動很大；這只是測試 AI 有沒有優勢，不是投注建議。'}</div>`;
+  h+=`<div class="card pad"><div class="tiles">
+   <div class="tile"><div class="l">${en?'Bets':'注數'}</div><div class="big">${T.n}</div></div>
+   <div class="tile"><div class="l">${en?'Profit (units)':'盈虧（注）'}</div><div class="big" style="color:${T.pnl>0?'var(--win)':T.pnl<0?'var(--loss)':'inherit'}">${T.n?u(T.pnl):'–'}</div></div>
+   <div class="tile"><div class="l">${en?'ROI':'回報率'}</div><div class="big">${pct(T.roi)}</div></div>
+   <div class="tile"><div class="l">${en?'Won':'贏'}</div><div class="big">${T.n?T.wins+'/'+T.n:'–'}</div></div>
+   <div class="tile"><div class="l">${en?'Worst drawdown':'最大回落'}</div><div class="big">${T.n?u(T.max_dd):'–'}</div></div>
+   <div class="tile"><div class="l">${en?'Longest losing run':'最長連輸'}</div><div class="big">${T.n?T.worst_streak:'–'}</div></div></div>`;
+  const c=P.curve||[];
+  if(c.length>1){const mn=Math.min(0,...c),mx=Math.max(0,...c),W=320,H=90,sx=i=>i*W/(c.length-1),sy=y=>H-(y-mn)*H/((mx-mn)||1);
+    h+=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100px;margin-top:10px"><line x1="0" x2="${W}" y1="${sy(0)}" y2="${sy(0)}" stroke="var(--line)"/><polyline fill="none" stroke="var(--acc)" stroke-width="2" points="${c.map((y,i)=>sx(i)+','+sy(y)).join(' ')}"/></svg><div class="xs mute">${en?'Cumulative profit (units)':'累積盈虧（注）'}</div>`;}
+  h+='</div>';
+  const tbl=(o,lab)=>{const e=Object.entries(o||{});if(!e.length)return '';return `<div class="sec">${lab}</div><div class="card"><table class="tbl"><tr><th style="text-align:left;padding-left:10px">${en?'Type':'類別'}</th><th>${en?'Bets':'注'}</th><th>${en?'Won':'贏'}</th><th>${en?'Profit':'盈虧'}</th><th>ROI</th></tr>${e.map(([k,x])=>`<tr><td class="tn" style="padding-left:10px">${k in MK?MK[k][en?0:1]:(en?{高:'High',中:'Med',低:'Low'}[k]+' conf.':'信心'+k)}</td><td>${x.n}</td><td>${x.wins}</td><td>${u(x.pnl)}</td><td>${pct(x.roi)}</td></tr>`).join('')}</table></div>`};
+  h+=tbl(P.by_market,en?'By market':'按盤口')+tbl(P.by_conf,en?'By AI confidence':'按 AI 信心');
+  const O=P.open||[];
+  h+=`<div class="sec">${en?'Open virtual bets (upcoming)':'未開賽的模擬注'}</div><div class="card">`+(O.length?O.map(b=>`<div class="gl" style="grid-template-columns:44px 1fr auto"><span class="small mute">${md(b.start)}</span><span>${nm(b.home)} v ${nm(b.away)}<div class="xs"><b>${en?b.en:b.zh}</b> @ ${b.odds} · AI ${Math.round(b.p*100)}% · ${en?'edge':'優勢'} ${pct(b.edge)}</div></span><span class="tag ai">${en?'open':'待結算'}</span></div>`).join(''):`<div class="empty small">${en?'None — the AI does not currently disagree enough with the odds on any upcoming match.':'暫時沒有：AI 目前對未開賽的比賽，沒有跟賠率差得夠多的判斷。'}</div>`)+'</div>';
+  const B=[...(P.bets||[])].reverse();
+  if(B.length)h+=`<div class="sec">${en?'Settled bets':'已結算'}</div><div class="card">`+B.map(b=>`<div class="gl" style="grid-template-columns:44px 1fr auto auto"><span class="small mute">${md(b.start)}</span><span>${nm(b.home)} v ${nm(b.away)}<div class="xs"><b>${en?b.en:b.zh}</b> @ ${b.odds} · AI ${Math.round(b.p*100)}%</div></span><span class="num">${u(b.pnl)}</span><span class="res ${b.win==null?'D':b.win?'W':'L'}">${b.win==null?'–':b.win?'✓':'✗'}</span></div>`).join('')+'</div>';
+  app.innerHTML=h;
 }
 load().catch(e=>{app.innerHTML='<div class="card empty">載入失敗：'+e+'</div>'});
 </script>
