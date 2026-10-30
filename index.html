@@ -310,7 +310,24 @@ function vAcc(){
     rows.push({g,v,ok,ex:v.score[0]==`${g.ft[0]}-${g.ft[1]}`,top3:v.score.includes(`${g.ft[0]}-${g.ft[1]}`),
       ec1:Math.abs(sum(v.c1)-sum(g.c1)),ec:Math.abs(sum(v.c)-sum(g.c)),ey:Math.abs(sum(v.y)-sum(g.y)),ef:Math.abs(sum(v.f)-sum(g.f)),
       o25:(v.over25>=50)==(g.ft[0]+g.ft[1]>2.5)});}
-  if(!rows.length){app.innerHTML='<div class="card empty">還沒有完場的 AI 預測。第一批預測完場後，這裏會統計命中率。</div>';return;}
+  const LS=(D.learn||{}).stats||{}, PB=(D.learn||{}).playbook||{};
+  const en=LANG=='en';
+  let learnH=`<div class="sec">${en?'How the AI is learning':'AI 自我學習'}</div><div class="card pad small">`;
+  if(PB.rules&&PB.rules.length){
+    learnH+=`<div class="mute xs">${en?'Prediction playbook v'+PB.version+' · updated '+stamp(PB.ts)+' (after round '+PB.round+')':'預測守則 第'+PB.version+'版 · '+stamp(PB.ts)+' 更新（第'+PB.round+'輪後）'}</div>`;
+    if(PB.summary_zh)learnH+=`<div style="margin:6px 0"><b>${en?'Latest change: ':'最新改動：'}</b>${esc(en?PB.summary_en||PB.summary_zh:PB.summary_zh)}</div>`;
+    learnH+=`<ol class="reasons">${PB.rules.map(r=>`<li>${esc(en?r.en||r.zh:r.zh)}<div class="xs mute">${esc(r.evidence||'')}</div></li>`).join('')}</ol>`;
+  } else learnH+=`<div class="mute">${en?'After each round, the AI reviews every match, measures its own biases and rewrites a playbook of up to 10 rules. The playbook and its bias corrections are fed into every new prediction. The first playbook appears after round 9 finishes.':'每輪完場後，AI 會覆盤每一場、量度自己的偏差，再改寫最多 10 條預測守則。之後每次預測都會讀這份守則和偏差校正。第 9 輪踢完後會出第一版。'}</div>`;
+  if(LS.n){
+    const b=x=>x==null?'–':x.toFixed(3);
+    learnH+=`<div class="sec" style="font-size:13px">${en?'Win/draw/loss probability score (Brier, lower is better)':'勝和負機率評分（Brier，越低越好）'}</div>
+    <div class="kv"><span>AI<b>${b(LS.brier_ai)}</b></span><span>${en?'Baseline':'統計基準'}<b>${b(LS.brier_base)}</b></span><span>${en?'Market odds':'市場賠率'}<b>${b(LS.brier_mkt)}</b></span><span>${en?'Season data only':'只用本季數據'}<b>${b(LS.brier_model)}</b></span></div>`;
+    const M=LS.metrics||{};const NM={g:['FT goals','總入球'],g1:['1H goals','上半入球'],c1:['1H corners','上半角球'],c:['FT corners','全場角球'],f1:['1H fouls','上半犯規'],f:['FT fouls','全場犯規'],y1:['1H yellows','上半黃牌'],y:['FT yellows','全場黃牌']};
+    if(Object.keys(M).length)learnH+=`<table class="cmp" style="margin-top:8px"><tr><th></th><th>${en?'Bias':'偏差'}</th><th>${en?'AI error':'AI 誤差'}</th><th>${en?'Baseline error':'基準誤差'}</th></tr>${Object.entries(M).map(([k,m])=>`<tr><td>${NM[k]?NM[k][en?0:1]:k}</td><td>${m.bias>0?'+':''}${m.bias}</td><td>±${m.mae}</td><td>${m.base_mae==null?'–':'±'+m.base_mae}</td></tr>`).join('')}</table><div class="xs mute" style="margin-top:4px">${en?'Bias: + means the AI over-predicts on average, − means under-predicts.':'偏差：正數代表 AI 平均高估，負數代表低估。'}</div>`;
+    const C=LS.by_conf||{};if(Object.keys(C).length)learnH+=`<div class="kv" style="margin-top:8px">${Object.entries(C).map(([c,x])=>`<span>${en?{高:'High',中:'Med',低:'Low'}[c]+' conf.':'信心'+c}<b>${Math.round(x.hit*100)}%</b><span class="xs mute"> (${x.n})</span></span>`).join('')}</div>`;
+  }
+  learnH+='</div>';
+  if(!rows.length){app.innerHTML='<div class="card empty">還沒有完場的 AI 預測。第一批預測完場後，這裏會統計命中率。</div>'+learnH;return;}
   const n=rows.length,pc=f=>Math.round(100*rows.filter(f).length/n),avg=k=>f1(rows.reduce((t,r)=>t+r[k],0)/n);
   let h=`<div class="card pad"><div class="small mute">已完場 ${n} 場的 AI 最後一版預測</div><div class="tiles" style="margin-top:8px">
    <div class="tile"><div class="l">勝負命中</div><div class="big">${pc(r=>r.ok)}%</div></div>
@@ -323,7 +340,7 @@ function vAcc(){
    <div class="tile"><div class="l">犯規誤差</div><div class="big">±${avg('ef')}</div></div></div></div><div class="card">`;
   for(const r of rows.sort((a,b)=>b.g.start-a.g.start)){const g=r.g;
     h+=`<a class="gl" href="#week/${g.round}" style="color:inherit;text-decoration:none"><span class="small mute">${md(g.start)}</span><span>${nm(g.home)} <b class="num">${g.ft[0]}-${g.ft[1]}</b> ${nm(g.away)}<div class="xs mute">預測 ${r.v.score[0]} · 主${Math.round(r.v.p[0])}/和${Math.round(r.v.p[1])}/客${Math.round(r.v.p[2])}</div></span><span class="xs mute">角${f1(sum(r.v.c))}→${sum(g.c)}</span><span class="res ${r.ok?'W':'L'}">${r.ok?'✓':'✗'}</span></a>`;}
-  app.innerHTML=h+'</div>';
+  app.innerHTML=h+'</div>'+learnH;
 }
 load().catch(e=>{app.innerHTML='<div class="card empty">載入失敗：'+e+'</div>'});
 </script>
