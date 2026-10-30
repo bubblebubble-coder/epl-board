@@ -94,10 +94,10 @@ ul.reasons{margin:6px 0;padding-left:18px}ul.reasons li{margin:3px 0}
  <a href="#acc" data-t="acc"><b>🎯</b>準確度</a>
 </nav>
 <script>
-let LANG=localStorage.getItem('lang')||'zh';
+let LANG='zh';try{localStorage.removeItem('lang')}catch(e){}
 const EN_TEAM={ARS:'Arsenal',MCI:'Man City',CHE:'Chelsea',LIV:'Liverpool',MUN:'Man United',TOT:'Tottenham',AVL:'Aston Villa',BHA:'Brighton',BOU:'Bournemouth',BRE:'Brentford',COC:'Coventry',CRY:'Crystal Palace',EVE:'Everton',FUL:'Fulham',HUL:'Hull City',IPS:'Ipswich',LEE:'Leeds',NEW:'Newcastle',NFO:"Nott'm Forest",SUN:'Sunderland'};
 const F=(o,k)=>{const e=o[k+'_en'];return LANG=='en'&&e&&(Array.isArray(e)?e.length:1)?e:o[k]};
-function setLang(l){LANG=l;localStorage.setItem('lang',l);document.documentElement.lang=l=='en'?'en':'zh-Hant';if(D)updHeader();route();}
+function setLang(l){LANG=l;document.documentElement.lang=l=='en'?'en':'zh-Hant';if(D)updHeader();route();}
 const RX=[[/第\s*(\d+)\s*輪/g,'Round $1'],[/第\s*(\d+)\s*位/g,'#$1'],[/AI 第(\d+)版/g,'AI v$1'],[/第(\d+)版/g,'v$1'],[/(\d+)勝(\d+)和(\d+)負/g,'$1W $2D $3L'],
  [/入(\d+) 失(\d+)/g,'GF $1 · GA $2'],[/(\d+) 分(?!鐘)/g,'$1 pts'],[/(\d+) 場 · 已完場 (\d+)/g,'$1 matches · $2 finished'],[/已完場 (\d+) 場的 AI 最後一版預測/g,'Final AI prediction for $1 finished matches'],
  [/主(\d+)\/和(\d+)\/客(\d+)/g,'H$1/D$2/A$3'],[/主(\d+)% 和(\d+)% 客(\d+)%/g,'H$1% D$2% A$3%'],[/角([\d.]+)→/g,'Corners $1→'],
