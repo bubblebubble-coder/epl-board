@@ -84,7 +84,7 @@ ul.reasons{margin:6px 0;padding-left:18px}ul.reasons li{margin:3px 0}
 </style>
 </head>
 <body>
-<header><h1>英超數據板 <span class="num">2026/27</span></h1><div class="sub" id="upd">載入中…</div></header>
+<header><div class="row"><h1>英超數據板 <span class="num">2026/27</span></h1><span class="sp"></span><button id="lang" class="chip" onclick="setLang(LANG=='zh'?'en':'zh')">EN</button></div><div class="sub" id="upd">載入中…</div></header>
 <main id="app"></main>
 <nav class="tabs">
  <a href="#week" data-t="week"><b>⚽</b>本週</a>
@@ -94,18 +94,59 @@ ul.reasons{margin:6px 0;padding-left:18px}ul.reasons li{margin:3px 0}
  <a href="#acc" data-t="acc"><b>🎯</b>準確度</a>
 </nav>
 <script>
+let LANG=localStorage.getItem('lang')||'zh';
+const EN_TEAM={ARS:'Arsenal',MCI:'Man City',CHE:'Chelsea',LIV:'Liverpool',MUN:'Man United',TOT:'Tottenham',AVL:'Aston Villa',BHA:'Brighton',BOU:'Bournemouth',BRE:'Brentford',COC:'Coventry',CRY:'Crystal Palace',EVE:'Everton',FUL:'Fulham',HUL:'Hull City',IPS:'Ipswich',LEE:'Leeds',NEW:'Newcastle',NFO:"Nott'm Forest",SUN:'Sunderland'};
+const F=(o,k)=>{const e=o[k+'_en'];return LANG=='en'&&e&&(Array.isArray(e)?e.length:1)?e:o[k]};
+function setLang(l){LANG=l;localStorage.setItem('lang',l);document.documentElement.lang=l=='en'?'en':'zh-Hant';if(D)updHeader();route();}
+const RX=[[/第\s*(\d+)\s*輪/g,'Round $1'],[/第\s*(\d+)\s*位/g,'#$1'],[/AI 第(\d+)版/g,'AI v$1'],[/第(\d+)版/g,'v$1'],[/(\d+)勝(\d+)和(\d+)負/g,'$1W $2D $3L'],
+ [/入(\d+) 失(\d+)/g,'GF $1 · GA $2'],[/(\d+) 分/g,'$1 pts'],[/(\d+) 場 · 已完場 (\d+)/g,'$1 matches · $2 finished'],[/已完場 (\d+) 場的 AI 最後一版預測/g,'Final AI prediction for $1 finished matches'],
+ [/主(\d+)\/和(\d+)\/客(\d+)/g,'H$1/D$2/A$3'],[/主(\d+)% 和(\d+)% 客(\d+)%/g,'H$1% D$2% A$3%'],[/角([\d.]+)→/g,'Corners $1→'],
+ [/半場形勢：主領先 (\d+)% · 打和 (\d+)% · 客領先 (\d+)%/g,'Half-time: home ahead $1% · level $2% · away ahead $3%'],[/^主 vs /,'H vs '],[/^客 vs /,'A vs '],
+ [/每場平均 · /g,'Per match · '],[/半場 (\d+)-(\d+)/g,'HT $1-$2'],[/預測 (\d+-\d+)/g,'Pred. $1']];
+const PH=[['所有預測只供參考，單場波動很大，不構成投注建議。時間為馬來西亞時間。AI 預測於本週第一場開賽前 1 小時發佈，之後每 12 小時及每場賽前 1 小時、30 分鐘檢查，有新資訊才修正。',"Predictions are for reference only, not betting advice. Times are Malaysia time (UTC+8). AI predictions are published 1 hour before the round's first match, then rechecked every 12 hours and 60 and 30 minutes before each kickoff; they change only when new information appears."],
+ ['還沒有完場的 AI 預測。第一批預測完場後，這裏會統計命中率。','No finished matches with AI predictions yet. Hit rates will appear here once the first predicted matches finish.'],
+ ['藍線：前四（歐聯資格）· 紅線：降班區。點球隊看詳情。','Blue: top 4 (Champions League) · Red: relegation zone. Tap a team for details.'],
+ ['AI 預測未出（將於本週第一場開賽前 1 小時發佈）· 統計基準 ',"AI prediction pending (published 1h before the round's first match) · Baseline "],
+ ['統計基準（賠率＋本季數據）：','Baseline (odds + season data): '],['；只用本季數據：','; season data only: '],
+ ['（括號為 20 隊排名）','(rank of 20)'],['（馬來西亞時間）',' (MYT)'],['賽果（新→舊）','Results (newest first)'],['：已檢查，維持預測',': checked, no change'],
+ ['半場領先/和/落後','HT lead/level/behind'],['大小2.5命中','O/U 2.5 hit'],['上半角球誤差','1H corners error'],['全場角球誤差','FT corners error'],['黃牌誤差','Yellows error'],['犯規誤差','Fouls error'],
+ ['比分在前三','Score in top 3'],['比分全中','Exact score'],['勝負命中','Result hit'],['勝負中','Result ✓'],['勝負錯','Result ✗'],['本季每場平均','Per-match averages'],
+ ['傷停／首發','Injuries / lineup'],['首發已公佈','XI confirmed'],['首發未公佈','XI not confirmed'],['預測紀錄','Prediction history'],['本版改動：','Changes: '],['下次注意：','Next time: '],
+ ['數據更新：','Updated: '],['最後檢查','last check'],['點擊看詳情 ▾','Details ▾'],['尚未預測','Not predicted'],
+ ['上半被角球','1H corners against'],['上半入球','1H goals'],['上半失球','1H conceded'],['上半犯規','1H fouls'],['上半角球','1H corners'],['上半黃牌','1H yellows'],
+ ['全場犯規','FT fouls'],['全場角球','FT corners'],['全場黃牌','FT yellows'],['兩隊入球','BTTS'],['被角球','Corners against'],['被犯規','Fouled'],['xG / 被xG','xG / xGA'],
+ ['AI 預測','AI pred.'],['AI 分析','AI analysis'],['AI 覆盤','AI review'],['無傷停','No absentees'],['無入球','No goals'],['入球：','Goals: '],['(烏龍)','(OG)'],['(十二碼)','(pen)'],
+ ['本週首次','first'],['12小時檢查','12h check'],['賽前1小時','T-60min'],['賽前30分鐘','T-30min'],['手動更新','manual'],['舊版模型','legacy'],['舊模型','legacy'],
+ ['下一場','Next match'],['控球%','Poss %'],['控球','Poss'],['射門','Shots'],['射正','On target'],['越位','Offsides'],['紅牌','Reds'],
+ ['球證：','Referee: '],['球證','Referee'],['查於','checked'],['首發','XI'],['半場','HT'],['完場','FT'],['進行中','LIVE'],['延期','Postponed'],['主勝','Home'],['客勝','Away'],['大2.5','O2.5'],
+ ['角球','Corners'],['黃牌','Yellows'],['犯規','Fouls'],['入球','Goals'],['失球','Conceded'],['信心','Conf.'],['比分','Score'],['實際','Actual'],['近況','Form'],['得失','GD'],['球隊','Team']];
+const EXACT={'和':'Draw','賽':'P','勝':'W','負':'L','分':'Pts','#':'#'};
+function i18n(){
+  if(LANG!='en')return;
+  const w=document.createTreeWalker(document.getElementById('app'),NodeFilter.SHOW_TEXT);let n;
+  while(n=w.nextNode()){let t=n.nodeValue;if(!/[\u4e00-\u9fff]/.test(t))continue;
+    const tt=t.trim();if(EXACT[tt]){n.nodeValue=t.replace(tt,(tt=='和'&&n.parentNode.closest('.tbl'))?'D':EXACT[tt]);continue;}
+    for(const [r,e] of RX)t=t.replace(r,e);
+    for(const [z,e] of PH)if(t.includes(z))t=t.split(z).join(e);
+    t=t.replace(/\(缺/g,'(out').replace(/\(疑/g,'(doubt');
+    n.nodeValue=t;}
+}
+function updHeader(){$('#upd').textContent=(LANG=='en'?'Updated: ':'數據更新：')+stamp(D.updated)+(LANG=='en'?' (MYT)':'（馬來西亞時間）')+(D.last_check?(LANG=='en'?' · last check ':' · 最後檢查 ')+stamp(D.last_check):'');$('#lang').textContent=LANG=='en'?'中文':'EN';
+  document.querySelector('header h1').firstChild.nodeValue=LANG=='en'?'Premier League Board ':'英超數據板 ';
+  document.querySelectorAll('nav.tabs a').forEach(a=>{a.lastChild.nodeValue=LANG=='en'?{week:'Week',table:'Table',team:'Teams',rank:'Rankings',acc:'Accuracy'}[a.dataset.t]:{week:'本週',table:'積分榜',team:'球隊',rank:'排行',acc:'準確度'}[a.dataset.t]});}
+
 const COL={ARS:'#db0007',MCI:'#6cabdd',CHE:'#034694',LIV:'#c8102e',MUN:'#da291c',TOT:'#132257',AVL:'#670e36',BHA:'#0057b8',BOU:'#b50e12',BRE:'#e30613',COC:'#59cbe8',CRY:'#1b458f',EVE:'#003399',FUL:'#222',HUL:'#f5a12d',IPS:'#3a64a3',LEE:'#ffcd00',NEW:'#241f20',NFO:'#dd0000',SUN:'#eb172b'};
 const DARKTXT={LEE:1,HUL:1,COC:1,MCI:1};
 const MODE={legacy:'舊版模型',round:'本週首次',check:'12小時檢查',pre60:'賽前1小時',pre30:'賽前30分鐘',manual:'手動更新'};
 let D,N,app=document.getElementById('app'),wk=null,rkKey='g',tmSel=null;
 const $=s=>document.querySelector(s);
 const tz='Asia/Kuala_Lumpur';
-const fmt=(ts,o)=>new Intl.DateTimeFormat('zh-Hant',Object.assign({timeZone:tz},o)).format(new Date(ts*1000));
+const fmt=(ts,o)=>new Intl.DateTimeFormat(LANG=='en'?'en-GB':'zh-Hant',Object.assign({timeZone:tz},o)).format(new Date(ts*1000));
 const hm=ts=>fmt(ts,{hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
 const md=ts=>fmt(ts,{month:'numeric',day:'numeric'});
 const dayLbl=ts=>fmt(ts,{month:'long',day:'numeric',weekday:'short'});
 const stamp=ts=>md(ts)+' '+hm(ts);
-const nm=c=>N[c]||c;
+const nm=c=>LANG=='en'?(EN_TEAM[c]||c):(N[c]||c);
 const badge=c=>`<span class="badge" style="background:${COL[c]||'#666'};${DARKTXT[c]?'color:#111':''}">${c}</span>`;
 const f1=x=>x==null?'–':(+x).toFixed(1);
 const sum=a=>a&&a[0]!=null?(+a[0])+(+a[1]):null;
@@ -113,7 +154,7 @@ const esc=s=>(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]
 
 async function load(){
   const r=await fetch('data.json?t='+Date.now());D=await r.json();N=D.names;
-  $('#upd').textContent='數據更新：'+stamp(D.updated)+'（馬來西亞時間）'+(D.last_check?' · 最後檢查 '+stamp(D.last_check):'');
+  updHeader();
   route();
 }
 window.addEventListener('hashchange',route);
@@ -122,6 +163,7 @@ function route(){
   document.querySelectorAll('nav.tabs a').forEach(a=>a.classList.toggle('on',a.dataset.t===h[0]));
   ({week:vWeek,table:vTable,team:vTeam,rank:vRank,acc:vAcc}[h[0]]||vWeek)(h[1]);
   window.scrollTo(0,0);
+  i18n();
 }
 const gameOf=id=>D.games.find(g=>g.id==id);
 const latest=id=>{const p=D.predictions[id];return p&&p.versions.length?p.versions[p.versions.length-1]:null};
@@ -141,10 +183,10 @@ function matchCard(e,open){
   const pv=v||null;
   const pb=pv?`<div class="pbar" style="margin-top:6px"><div class="ph" style="width:${pv.p[0]}%">${Math.round(pv.p[0])}%</div><div class="pd" style="width:${pv.p[1]}%">${Math.round(pv.p[1])}%</div><div class="pa" style="width:${pv.p[2]}%">${Math.round(pv.p[2])}%</div></div>
    <div class="row xs mute" style="margin-top:2px"><span>主勝</span><span class="sp" style="text-align:center">和</span><span>客勝</span></div>`:'';
-  const kv=pv?`<div class="kv"><span>大2.5<b>${Math.round(pv.over25)}%</b></span><span>兩隊入球<b>${Math.round(pv.btts)}%</b></span><span>上半角球<b>${f1(sum(pv.c1))}</b></span><span>全場角球<b>${f1(sum(pv.c))}</b></span><span>黃牌<b>${f1(sum(pv.y))}</b></span>${pv.confidence?`<span>信心<b style="font-family:inherit;font-size:12px">${pv.confidence}</b></span>`:''}</div>`:
+  const kv=pv?`<div class="kv"><span>大2.5<b>${Math.round(pv.over25)}%</b></span><span>兩隊入球<b>${Math.round(pv.btts)}%</b></span><span>上半角球<b>${f1(sum(pv.c1))}</b></span><span>全場角球<b>${f1(sum(pv.c))}</b></span><span>黃牌<b>${f1(sum(pv.y))}</b></span>${pv.confidence?`<span>信心<b style="font-family:inherit;font-size:12px">${LANG=='en'?({低:'Low',中:'Med',高:'High'}[pv.confidence]||pv.confidence):pv.confidence}</b></span>`:''}</div>`:
     (!fin&&!live?`<div class="small mute" style="margin-top:6px">${bl?'AI 預測未出（將於本週第一場開賽前 1 小時發佈）· 統計基準 主'+Math.round(bl.p[0])+'% 和'+Math.round(bl.p[1])+'% 客'+Math.round(bl.p[2])+'%':'尚未預測'}</div>`:'');
   const ver=pv?`<span class="tag ai">${pv.mode==="legacy"?"舊模型":"AI 第"+pv.n+"版"} · ${stamp(pv.ts)}</span>`:'';
-  const head=pv&&pv.headline?`<div class="headline">${esc(pv.headline)}</div>`:'';
+  const head=pv&&pv.headline?`<div class="headline">${esc(F(pv,'headline'))}</div>`:'';
   const body=detail(e,g,pv,P,rv,pre,bl);
   return `<div class="card match"><details ${open?'open':''}><summary class="pad">
    <div class="row small"><span class="mute">${md(e.start)} ${hm(e.start)} · 第${e.round}輪</span><span class="sp"></span>${st}${hit}</div>
@@ -161,10 +203,10 @@ function detail(e,g,v,P,rv,pre,bl){
       ['上半黃牌',pair(v.y1),g&&pair(g.y1,0)],['全場黃牌',pair(v.y),g&&pair(g.y,0)]];
     h+=`<table class="cmp"><tr><th></th><th>AI 預測</th>${g?'<th>實際</th>':''}</tr>${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td>${g?`<td>${r[2]??'–'}</td>`:''}</tr>`).join('')}</table>`;
     if(v.ht_p)h+=`<div class="small mute" style="margin-top:6px">半場形勢：主領先 ${Math.round(v.ht_p[0])}% · 打和 ${Math.round(v.ht_p[1])}% · 客領先 ${Math.round(v.ht_p[2])}%</div>`;
-    if(v.reasons&&v.reasons.length)h+=`<div class="sec" style="font-size:13px">AI 分析</div><ul class="reasons small">${v.reasons.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>`;
-    if(v.key_changes)h+=`<div class="small"><b>本版改動：</b>${esc(v.key_changes)}</div>`;
+    if(v.reasons&&v.reasons.length)h+=`<div class="sec" style="font-size:13px">AI 分析</div><ul class="reasons small">${F(v,'reasons').map(r=>`<li>${esc(r)}</li>`).join('')}</ul>`;
+    if(v.key_changes)h+=`<div class="small"><b>本版改動：</b>${esc(F(v,'key_changes'))}</div>`;
   }
-  if(rv)h+=`<div class="sec" style="font-size:13px">AI 覆盤</div><div class="small"><b>${esc(rv.verdict)}</b></div><ul class="reasons small">${(rv.points||[]).map(r=>`<li>${esc(r)}</li>`).join('')}</ul>${rv.lesson?`<div class="small mute">下次注意：${esc(rv.lesson)}</div>`:''}`;
+  if(rv)h+=`<div class="sec" style="font-size:13px">AI 覆盤</div><div class="small"><b>${esc(F(rv,'verdict'))}</b></div><ul class="reasons small">${(F(rv,'points')||[]).map(r=>`<li>${esc(r)}</li>`).join('')}</ul>${rv.lesson?`<div class="small mute">下次注意：${esc(F(rv,'lesson'))}</div>`:''}`;
   if(g&&g.goals.length)h+=`<div class="small" style="margin-top:8px"><b>入球：</b>${g.goals.map(x=>`${x[0]}' ${nm(x[1]=='H'?e.home:e.away)} ${esc(x[3]||'')}${x[2]=='ownGoal'?'(烏龍)':x[2]=='penalty'?'(十二碼)':''}`).join('、')}</div>`;
   if(g)h+=`<div class="small mute">控球 ${g.poss[0]}%-${g.poss[1]}% · xG ${g.xg[0]}-${g.xg[1]} · 射門 ${g.shots[0]}(${g.sot[0]})-${g.shots[1]}(${g.sot[1]})${g.referee?' · 球證 '+esc(g.referee):''}</div>`;
   if(pre&&e.status!=='finished'){
@@ -185,7 +227,7 @@ function detail(e,g,v,P,rv,pre,bl){
 }
 function pair(a,dec=1){if(!a||a[0]==null)return '–';return dec?`${f1(a[0])} - ${f1(a[1])} <span class="mute">(${f1(sum(a))})</span>`:`${a[0]}-${a[1]} <span class="mute">(${sum(a)})</span>`}
 const INJ={'Hamstring Injury':'腿筋','Knee Injury':'膝傷','Ankle Injury':'腳踝','Muscle Injury':'肌肉','Back Injury':'背傷','Knock Injury':'碰傷','Calf Injury':'小腿','Groin Injury':'腹股溝','Thigh Injury':'大腿','Foot Injury':'腳傷','Illness':'生病','Unknown':'不明','Suspended':'停賽','red_card_suspension':'紅牌停賽','yellow_card_suspension':'累積黃牌停賽','Cruciate Ligament Injury':'十字韌帶','Achilles Tendon Injury':'跟腱','Shoulder Injury':'肩傷','Head Injury':'頭部','Hip Injury':'髖部','Concussion':'腦震盪','Ineligible':'不符資格','Broken Leg':'斷腿','Toe Injury':'腳趾','Lack of match fitness':'狀態未足'};
-const trInj=s=>INJ[s]||s;
+const trInj=s=>LANG=='en'?s:(INJ[s]||s);
 
 /* ---------- week ---------- */
 function curRound(){
@@ -239,7 +281,7 @@ function vTeam(c){
     `</div></div>`;
   h+=`<div class="sec">賽果（新→舊）</div><div class="card">`;
   for(const g of [...gs].reverse()){const H=g.home==c,o=H?g.away:g.home,i=H?0:1,j=1-i;const r=g.ft[i]>g.ft[j]?'W':g.ft[i]==g.ft[j]?'D':'L';
-    h+=`<details><summary class="gl"><span class="small mute">${md(g.start)}</span><span>${H?'主':'客'} vs <b>${nm(o)}</b></span><span class="num" style="font-size:17px">${g.ft[i]}-${g.ft[j]} <span class="xs mute">(${g.ht[i]}-${g.ht[j]})</span></span><span class="res ${r}">${{W:'勝',D:'和',L:'負'}[r]}</span></summary>
+    h+=`<details><summary class="gl"><span class="small mute">${md(g.start)}</span><span>${H?'主':'客'} vs <b>${nm(o)}</b></span><span class="num" style="font-size:17px">${g.ft[i]}-${g.ft[j]} <span class="xs mute">(${g.ht[i]}-${g.ht[j]})</span></span><span class="res ${r}">${LANG=='en'?r:{W:'勝',D:'和',L:'負'}[r]}</span></summary>
       <div class="pad" style="padding-top:4px"><table class="cmp"><tr><th></th><th>${nm(c)}</th><th>${nm(o)}</th></tr>
       ${[['上半角球','c1'],['全場角球','c'],['控球%','poss'],['xG','xg'],['射門','shots'],['射正','sot'],['上半犯規','f1'],['犯規','f'],['上半黃牌','y1'],['黃牌','y'],['紅牌','r'],['越位','off']].map(([l,k])=>`<tr><td>${l}</td><td>${g[k][i]??'–'}</td><td>${g[k][j]??'–'}</td></tr>`).join('')}</table>
       <div class="small" style="margin-top:6px">${g.goals.map(x=>`${x[0]}' ${nm(x[1]=='H'?g.home:g.away)} ${esc(x[3]||'')}`).join('、')||'無入球'}</div></div></details>`;}
@@ -251,7 +293,7 @@ function vTeam(c){
 function vRank(){
   const M=[['g',0,'入球'],['g',1,'失球'],['g1',0,'上半入球'],['c',0,'角球'],['c1',0,'上半角球'],['c',1,'被角球'],['f',0,'犯規'],['y',0,'黃牌'],['y1',0,'上半黃牌'],['xg',0,'xG'],['poss',0,'控球%']];
   const cur=M.find(m=>m[0]+m[1]==rkKey)||M[0];
-  let h=`<div class="chips">${M.map(m=>`<span class="chip ${m==cur?'on':''}" onclick="rkKey='${m[0]+m[1]}';vRank()">${m[2]}</span>`).join('')}</div>`;
+  let h=`<div class="chips">${M.map(m=>`<span class="chip ${m==cur?'on':''}" onclick="rkKey='${m[0]+m[1]}';vRank();i18n()">${m[2]}</span>`).join('')}</div>`;
   let vals;
   if(cur[0]=='xg'||cur[0]=='poss'){vals=Object.keys(D.teams).map(c=>{const gs=D.games.filter(g=>g.home==c||g.away==c);return [c,gs.reduce((t,g)=>t+(+(g.home==c?g[cur[0]][0]:g[cur[0]][1])||0),0)/Math.max(gs.length,1)]})}
   else vals=Object.keys(D.teams).map(c=>[c,per(c,cur[0],cur[1])]);
@@ -280,7 +322,7 @@ function vAcc(){
    <div class="tile"><div class="l">黃牌誤差</div><div class="big">±${avg('ey')}</div></div>
    <div class="tile"><div class="l">犯規誤差</div><div class="big">±${avg('ef')}</div></div></div></div><div class="card">`;
   for(const r of rows.sort((a,b)=>b.g.start-a.g.start)){const g=r.g;
-    h+=`<a class="gl" href="#week/${g.round}" style="color:inherit;text-decoration:none"><span class="small mute">${md(g.start)}</span><span>${nm(g.home)} <b class="num">${g.ft[0]}-${g.ft[1]}</b> ${nm(g.away)}<div class="xs mute">預測 ${r.v.score[0]} · 主${Math.round(r.v.p[0])}/和${Math.round(r.v.p[1])}/客${Math.round(r.v.p[2])}</div></span><span class="xs mute">角${f1(sum(r.v.c))}→${sum(g.c)}</span><span class="res ${r.ok?'W':'L'}">${r.ok?'中':'錯'}</span></a>`;}
+    h+=`<a class="gl" href="#week/${g.round}" style="color:inherit;text-decoration:none"><span class="small mute">${md(g.start)}</span><span>${nm(g.home)} <b class="num">${g.ft[0]}-${g.ft[1]}</b> ${nm(g.away)}<div class="xs mute">預測 ${r.v.score[0]} · 主${Math.round(r.v.p[0])}/和${Math.round(r.v.p[1])}/客${Math.round(r.v.p[2])}</div></span><span class="xs mute">角${f1(sum(r.v.c))}→${sum(g.c)}</span><span class="res ${r.ok?'W':'L'}">${r.ok?'✓':'✗'}</span></a>`;}
   app.innerHTML=h+'</div>';
 }
 load().catch(e=>{app.innerHTML='<div class="card empty">載入失敗：'+e+'</div>'});
