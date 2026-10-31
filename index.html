@@ -187,12 +187,14 @@ function matchCard(e,open){
   const kv=pv?`<div class="kv"><span>大2.5<b>${Math.round(pv.over25)}%</b></span><span>兩隊入球<b>${Math.round(pv.btts)}%</b></span><span>上半角球<b>${f1(sum(pv.c1))}</b></span><span>全場角球<b>${f1(sum(pv.c))}</b></span><span>黃牌<b>${f1(sum(pv.y))}</b></span>${pv.confidence?`<span>信心<b style="font-family:inherit;font-size:12px">${LANG=='en'?({低:'Low',中:'Med',高:'High'}[pv.confidence]||pv.confidence):pv.confidence}</b></span>`:''}</div>`:
     (!fin&&!live?`<div class="small mute" style="margin-top:6px">${bl?'AI 預測未出（將於本週第一場開賽前 1 小時發佈）· 統計基準 主'+Math.round(bl.p[0])+'% 和'+Math.round(bl.p[1])+'% 客'+Math.round(bl.p[2])+'%':'尚未預測'}</div>`:'');
   const ver=pv?`<span class="tag ai">${pv.mode==="legacy"?"舊模型":"AI 第"+pv.n+"版"} · ${stamp(pv.ts)}</span>`:'';
+  const htc=(D.halftime||{})[e.id];
+  const htl=htc&&!fin?`<div class="small" style="margin-top:6px"><span class="tag ai">⏸️ ${LANG=='en'?'HT update':'半場更新'}</span> ${LANG=='en'?'H':'主'}${Math.round(htc.p[0])}/${LANG=='en'?'D':'和'}${Math.round(htc.p[1])}/${LANG=='en'?'A':'客'}${Math.round(htc.p[2])} · ${htc.score[0]}</div>`:'';
   const head=pv&&pv.headline?`<div class="headline">${esc(F(pv,'headline'))}</div>`:'';
   const body=detail(e,g,pv,P,rv,pre,bl);
   return `<div class="card match"><details ${open?'open':''}><summary class="pad">
    <div class="row small"><span class="mute">${md(e.start)} ${hm(e.start)} · 第${e.round}輪</span><span class="sp"></span>${st}${hit}</div>
    <div class="teams"><a class="t" href="#team/${e.home}" onclick="event.stopPropagation()">${badge(e.home)}<span>${nm(e.home)}</span></a>${mid}<a class="t r" href="#team/${e.away}" onclick="event.stopPropagation()"><span>${nm(e.away)}</span>${badge(e.away)}</a></div>
-   ${pb}${kv}${head}<div class="row" style="margin-top:8px">${ver}<span class="sp"></span><span class="xs mute">點擊看詳情 ▾</span></div>
+   ${pb}${kv}${htl}${head}<div class="row" style="margin-top:8px">${ver}<span class="sp"></span><span class="xs mute">點擊看詳情 ▾</span></div>
   </summary><div class="pad" style="padding-top:0">${body}</div></details></div>`;
 }
 function detail(e,g,v,P,rv,pre,bl){
@@ -207,6 +209,13 @@ function detail(e,g,v,P,rv,pre,bl){
     if(v.reasons&&v.reasons.length)h+=`<div class="sec" style="font-size:13px">AI 分析</div><ul class="reasons small">${F(v,'reasons').map(r=>`<li>${esc(r)}</li>`).join('')}</ul>`;
     if(v.key_changes)h+=`<div class="small"><b>本版改動：</b>${esc(F(v,'key_changes'))}</div>`;
   }
+  const HTc=(D.halftime||{})[e.id];
+  if(HTc){const en=LANG=='en',fh=HTc.first_half||{},pr=x=>x?`${x[0]}-${x[1]}`:'–';
+    h+=`<div class="sec" style="font-size:13px">⏸️ ${en?'Half-time AI check':'半場 AI 檢討'} <span class="xs mute">${stamp(HTc.ts)} · ${en?'HT':'半場'} ${HTc.ht[0]}-${HTc.ht[1]}</span></div>
+    <div class="xs mute">${en?'1st half':'上半場'}：${en?'Poss':'控球'} ${pr(fh.poss)} · xG ${pr(fh.xg)} · ${en?'Shots':'射門'} ${pr(fh.shots)}(${pr(fh.sot)}) · ${en?'Corners':'角球'} ${pr(fh.c)} · ${en?'Fouls':'犯規'} ${pr(fh.f)} · ${en?'Yellows':'黃牌'} ${pr(fh.y)}${fh.r&&(+fh.r[0]||+fh.r[1])?' · '+(en?'Reds':'紅牌')+' '+pr(fh.r):''}</div>
+    <div class="small" style="margin-top:4px"><b>${esc(F(HTc,'verdict'))}</b></div><ul class="reasons small">${(F(HTc,'points')||[]).map(r=>`<li>${esc(r)}</li>`).join('')}</ul>
+    <div class="small"><b>${en?'Updated full-time call: ':'更新全場預測：'}</b>${en?'H':'主'}${Math.round(HTc.p[0])}/${en?'D':'和'}${Math.round(HTc.p[1])}/${en?'A':'客'}${Math.round(HTc.p[2])} · ${(HTc.score||[]).join(' / ')} · ${en?'Corners':'角球'} ${f1(sum(HTc.c))} · ${en?'Yellows':'黃牌'} ${f1(sum(HTc.y))} · ${en?'Fouls':'犯規'} ${f1(sum(HTc.f))}</div>
+    ${HTc.headline?`<div class="small mute">${esc(F(HTc,'headline'))}</div>`:''}${HTc.changes?`<div class="small"><b>${en?'Changes: ':'改動：'}</b>${esc(F(HTc,'changes'))}</div>`:''}`;}
   if(rv)h+=`<div class="sec" style="font-size:13px">AI 覆盤</div><div class="small"><b>${esc(F(rv,'verdict'))}</b></div><ul class="reasons small">${(F(rv,'points')||[]).map(r=>`<li>${esc(r)}</li>`).join('')}</ul>${rv.lesson?`<div class="small mute">下次注意：${esc(F(rv,'lesson'))}</div>`:''}`;
   if(g&&g.goals.length)h+=`<div class="small" style="margin-top:8px"><b>入球：</b>${g.goals.map(x=>`${x[0]}' ${nm(x[1]=='H'?e.home:e.away)} ${esc(x[3]||'')}${x[2]=='ownGoal'?'(烏龍)':x[2]=='penalty'?'(十二碼)':''}`).join('、')}</div>`;
   if(g)h+=`<div class="small mute">控球 ${g.poss[0]}%-${g.poss[1]}% · xG ${g.xg[0]}-${g.xg[1]} · 射門 ${g.shots[0]}(${g.sot[0]})-${g.shots[1]}(${g.sot[1]})${g.referee?' · 球證 '+esc(g.referee):''}</div>`;
