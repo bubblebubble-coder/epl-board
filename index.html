@@ -80,6 +80,10 @@ ul.reasons{margin:6px 0;padding-left:18px}ul.reasons li{margin:3px 0}
 .big{font:700 32px "Saira Condensed"}
 .note{font-size:12px;color:var(--mute);margin:14px 4px}
 .sec{font-weight:700;margin:14px 2px 2px;font-size:15px}
+.tl{margin:6px 0;font-size:13px}.tl .ev{display:grid;grid-template-columns:1fr 46px 1fr;gap:6px;align-items:center;padding:3px 0;border-bottom:1px dashed var(--line)}
+.tl .ev:last-child{border-bottom:0}.tl .m{text-align:center;font:600 13px "Saira Condensed";color:var(--mute)}.tl .h{text-align:right}.tl .ht{text-align:center;font-size:11px;color:var(--mute);padding:4px 0;background:var(--soft);border-radius:6px;margin:4px 0}
+.ic{display:inline-block;width:10px;height:13px;border-radius:2px;vertical-align:-2px}.ic.y{background:#facc15}.ic.r{background:#dc2626}.ic.yr{background:linear-gradient(90deg,#facc15 50%,#dc2626 50%)}
+.lu{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px}.lu .p{display:flex;gap:5px;align-items:center;padding:2px 0}.lu .no{width:20px;text-align:right;color:var(--mute);font-family:"Saira Condensed"}.lu .rt{margin-left:auto;font:600 12px "Saira Condensed";padding:0 4px;border-radius:4px;color:#fff}
 .empty{padding:24px;text-align:center;color:var(--mute)}
 </style>
 </head>
@@ -217,7 +221,8 @@ function detail(e,g,v,P,rv,pre,bl){
     <div class="small"><b>${en?'Updated full-time call: ':'更新全場預測：'}</b>${en?'H':'主'}${Math.round(HTc.p[0])}/${en?'D':'和'}${Math.round(HTc.p[1])}/${en?'A':'客'}${Math.round(HTc.p[2])} · ${(HTc.score||[]).join(' / ')} · ${en?'Corners':'角球'} ${f1(sum(HTc.c))} · ${en?'Yellows':'黃牌'} ${f1(sum(HTc.y))} · ${en?'Fouls':'犯規'} ${f1(sum(HTc.f))}</div>
     ${HTc.headline?`<div class="small mute">${esc(F(HTc,'headline'))}</div>`:''}${HTc.changes?`<div class="small"><b>${en?'Changes: ':'改動：'}</b>${esc(F(HTc,'changes'))}</div>`:''}`;}
   if(rv)h+=`<div class="sec" style="font-size:13px">AI 覆盤</div><div class="small"><b>${esc(F(rv,'verdict'))}</b></div><ul class="reasons small">${(F(rv,'points')||[]).map(r=>`<li>${esc(r)}</li>`).join('')}</ul>${rv.lesson?`<div class="small mute">下次注意：${esc(F(rv,'lesson'))}</div>`:''}`;
-  if(g&&g.goals.length)h+=`<div class="small" style="margin-top:8px"><b>入球：</b>${g.goals.map(x=>`${x[0]}' ${nm(x[1]=='H'?e.home:e.away)} ${esc(x[3]||'')}${x[2]=='ownGoal'?'(烏龍)':x[2]=='penalty'?'(十二碼)':''}`).join('、')}</div>`;
+  if(g&&g.goals.length&&!g.tl)h+=`<div class="small" style="margin-top:8px"><b>入球：</b>${g.goals.map(x=>`${x[0]}' ${nm(x[1]=='H'?e.home:e.away)} ${esc(x[3]||'')}${x[2]=='ownGoal'?'(烏龍)':x[2]=='penalty'?'(十二碼)':''}`).join('、')}</div>`;
+  if(g)h+=tlHtml(g)+luHtml(g);
   if(g)h+=`<div class="small mute">控球 ${g.poss[0]}%-${g.poss[1]}% · xG ${g.xg[0]}-${g.xg[1]} · 射門 ${g.shots[0]}(${g.sot[0]})-${g.shots[1]}(${g.sot[1]})${g.referee?' · 球證 '+esc(g.referee):''}</div>`;
   if(pre&&e.status!=='finished'){
     h+=`<div class="sec" style="font-size:13px">傷停／首發 <span class="xs mute">${pre.confirmed?'首發已公佈':'首發未公佈'} · 查於 ${stamp(pre.fetched)}</span></div>`;
@@ -294,7 +299,7 @@ function vTeam(c){
     h+=`<details><summary class="gl"><span class="small mute">${md(g.start)}</span><span>${H?'主':'客'} vs <b>${nm(o)}</b></span><span class="num" style="font-size:17px">${g.ft[i]}-${g.ft[j]} <span class="xs mute">(${g.ht[i]}-${g.ht[j]})</span></span><span class="res ${r}">${LANG=='en'?r:{W:'勝',D:'和',L:'負'}[r]}</span></summary>
       <div class="pad" style="padding-top:4px"><table class="cmp"><tr><th></th><th>${nm(c)}</th><th>${nm(o)}</th></tr>
       ${[['上半角球','c1'],['全場角球','c'],['控球%','poss'],['xG','xg'],['射門','shots'],['射正','sot'],['上半犯規','f1'],['犯規','f'],['上半黃牌','y1'],['黃牌','y'],['紅牌','r'],['越位','off']].map(([l,k])=>`<tr><td>${l}</td><td>${g[k][i]??'–'}</td><td>${g[k][j]??'–'}</td></tr>`).join('')}</table>
-      <div class="small" style="margin-top:6px">${g.goals.map(x=>`${x[0]}' ${nm(x[1]=='H'?g.home:g.away)} ${esc(x[3]||'')}`).join('、')||'無入球'}</div></div></details>`;}
+      ${g.tl?tlHtml(g)+luHtml(g):`<div class="small" style="margin-top:6px">${g.goals.map(x=>`${x[0]}' ${nm(x[1]=='H'?g.home:g.away)} ${esc(x[3]||'')}`).join('、')||'無入球'}</div>`}</div></details>`;}
   app.innerHTML=h+'</div>';
   const on=document.querySelector('#tch .on');if(on)on.scrollIntoView({inline:'center',block:'nearest'});
 }
@@ -378,6 +383,38 @@ function vSim(){
   const B=[...(P.bets||[])].reverse();
   if(B.length)h+=`<div class="sec">${en?'Settled bets':'已結算'}</div><div class="card">`+B.map(b=>`<div class="gl" style="grid-template-columns:44px 1fr auto auto"><span class="small mute">${md(b.start)}</span><span>${nm(b.home)} v ${nm(b.away)}<div class="xs"><b>${en?b.en:b.zh}</b> @ ${b.odds} · AI ${Math.round(b.p*100)}%</div></span><span class="num">${u(b.pnl)}</span><span class="res ${b.win==null?'D':b.win?'W':'L'}">${b.win==null?'–':b.win?'✓':'✗'}</span></div>`).join('')+'</div>';
   app.innerHTML=h;
+}
+
+/* ---------- timeline & lineups ---------- */
+const VARZ={penaltyNotAwarded:'不判十二碼',penaltyAwarded:'判十二碼',goalAwarded:'入球有效',goalNotAwarded:'入球無效',redCard:'紅牌',noRedCard:'不出紅牌',cardUpgrade:'改判紅牌',mistakenIdentity:'認錯人'};
+const VARE={penaltyNotAwarded:'no penalty',penaltyAwarded:'penalty given',goalAwarded:'goal stands',goalNotAwarded:'goal disallowed',redCard:'red card',noRedCard:'no red card',cardUpgrade:'card upgraded'};
+const RSN={'Foul':'犯規','Argument':'爭拗','Time wasting':'拖延時間','Handball':'手球','Unsporting behaviour':'違反體育精神','Dissent':'不滿判決','Professional foul last man':'最後防線犯規','Simulation':'插水','Off the ball foul':'無球犯規','Entering field of play':'未經許可進場','Persistent fouling':'屢次犯規','Violent conduct':'暴力行為','Denying goal-scoring opportunity':'阻止明顯入球機會','Other':'其他'};
+function tlHtml(g){
+  if(!g.tl||!g.tl.length)return '';
+  const en=LANG=='en',L=[];let htDone=false;
+  const mm=x=>x[0]+(x[1]?'+'+x[1]:'')+"'";
+  const CL={yellow:'y',red:'r',yellowRed:'yr'};
+  for(const x of g.tl){
+    if(!htDone&&x[0]>45){L.push(`<div class="ht">${en?'Half-time':'半場'} ${g.ht[0]}-${g.ht[1]}</div>`);htDone=true;}
+    let t='';
+    if(x[3]=='g')t=`⚽ <b>${esc(x[5]||'')}</b>${x[4]=='penalty'?(en?' (pen)':'（十二碼）'):x[4]=='ownGoal'?(en?' (OG)':'（烏龍）'):''} <span class="num">${x[7]}</span>${x[6]?`<div class="xs mute">${en?'Assist':'助攻'}: ${esc(x[6])}</div>`:''}`;
+    else if(x[3]=='c')t=`<span class="ic ${CL[x[4]]||'y'}"></span> ${esc(x[5]||'')}${x[6]?`<span class="xs mute"> · ${esc(en?x[6]:(RSN[x[6]]||x[6]))}</span>`:''}`;
+    else if(x[3]=='s')t=`🔄 <span style="color:var(--win)">▲ ${esc(x[5]||'')}</span><div class="xs" style="color:var(--loss)">▼ ${esc(x[6]||'')}${x[4]=='inj'?(en?' (injury)':'（受傷）'):''}</div>`;
+    else if(x[3]=='v')t=`📺 VAR <span class="xs mute">${esc((en?VARE:VARZ)[x[4]]||x[4]||'')} ${esc(x[5]||'')}</span>`;
+    L.push(x[2]=='H'?`<div class="ev"><div class="h">${t}</div><div class="m">${mm(x)}</div><div></div></div>`:`<div class="ev"><div></div><div class="m">${mm(x)}</div><div>${t}</div></div>`);
+  }
+  if(!htDone)L.push(`<div class="ht">${en?'Half-time':'半場'} ${g.ht[0]}-${g.ht[1]}</div>`);
+  return `<details class="more"><summary class="small"><b>⏱️ ${en?'Match timeline':'比賽過程'}</b> <span class="xs mute">${en?'goals · assists · cards · subs':'入球 · 助攻 · 紅黃牌 · 換人'} ▾</span></summary><div class="tl">${L.join('')}</div></details>`;
+}
+function luHtml(g){
+  if(!g.lu)return '';
+  const en=LANG=='en';
+  const rc=r=>r==null?'':`<span class="rt" style="background:${r>=7.5?'#16a34a':r>=6.8?'#65a30d':r>=6.3?'#d97706':'#dc2626'}">${(+r).toFixed(1)}</span>`;
+  const subIn={},subOut={};for(const x of g.tl||[])if(x[3]=='s'){subIn[x[5]]=x[0];subOut[x[6]]=x[0];}
+  const side=(k,c)=>{const S=g.lu[k];if(!S)return '<div></div>';const xi=S.p.filter(p=>!p[3]),bn=S.p.filter(p=>p[3]&&(p[6]||subIn[p[0]]!=null));
+    const row=p=>`<div class="p"><span class="no">${p[1]??''}</span><span>${esc(p[0])}${p[4]?' (C)':''}${subOut[p[0]]!=null?` <span class="xs" style="color:var(--loss)">▼${subOut[p[0]]}'</span>`:''}${subIn[p[0]]!=null?` <span class="xs" style="color:var(--win)">▲${subIn[p[0]]}'</span>`:''}</span>${rc(p[5])}</div>`;
+    return `<div><div class="row" style="margin-bottom:4px">${badge(c)}<b>${S.f||''}</b></div>${xi.map(row).join('')}${bn.length?`<div class="xs mute" style="margin-top:4px">${en?'Subs used':'後備上陣'}</div>`+bn.map(row).join(''):''}</div>`;};
+  return `<details class="more"><summary class="small"><b>👥 ${en?'Line-ups':'陣容'}</b> <span class="xs mute">${en?'XI · subs · ratings':'首發 · 後備 · 評分'} ▾</span></summary><div class="lu" style="margin-top:6px">${side('H',g.home)}${side('A',g.away)}</div><div class="xs mute" style="margin-top:4px">${en?'Ratings from Sofascore.':'評分來自 Sofascore。'}</div></details>`;
 }
 load().catch(e=>{app.innerHTML='<div class="card empty">載入失敗：'+e+'</div>'});
 </script>
