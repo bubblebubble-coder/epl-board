@@ -112,7 +112,7 @@ const RX=[[/第\s*(\d+)\s*輪/g,'Round $1'],[/第\s*(\d+)\s*位/g,'#$1'],[/AI �
  [/主(\d+)\/[和平](\d+)\/客(\d+)/g,'H$1/D$2/A$3'],[/主(\d+)% [和平](\d+)% 客(\d+)%/g,'H$1% D$2% A$3%'],[/角([\d.]+)→/g,'Corners $1→'],
  [/半場形勢：主領先 (\d+)% · 平局 (\d+)% · 客領先 (\d+)%/g,'Half-time: home ahead $1% · level $2% · away ahead $3%'],[/^主 vs /,'H vs '],[/^客 vs /,'A vs '],
  [/每場平均 · /g,'Per match · '],[/半場 (\d+)-(\d+)/g,'HT $1-$2'],[/預測 (\d+-\d+)/g,'Pred. $1']];
-const PH=[['所有預測只供參考，單場波動很大，不構成投注建議。時間為馬來西亞時間。AI 預測於本週第一場開賽前 1 小時發佈，之後每 12 小時及每場賽前 1 小時、30 分鐘檢查，有新資訊才修正。',"Predictions are for reference only, not betting advice. Times are Malaysia time (UTC+8). AI predictions are published 1 hour before the round's first match, then rechecked every 12 hours and 60 and 30 minutes before each kickoff; they change only when new information appears."],
+const PH=[['所有預測只供參考，單場波動很大，不構成投注建議。時間為馬來西亞時間。AI 預測於本週第一場開賽前 1 小時發佈，之後每 12 小時及每場賽前 1 小時、30 分鐘檢查，有新資訊才修正；賽前 30 分鐘後如賠率大幅變動或首發有變，會再檢查一次。',"Predictions are for reference only, not betting advice. Times are Malaysia time (UTC+8). AI predictions are published 1 hour before the round's first match, then rechecked every 12 hours and 60 and 30 minutes before each kickoff; they change only when new information appears. After T-30, a big odds swing or line-up change triggers one more check."],
  ['還沒有完場的 AI 預測。第一批預測完場後，這裏會統計命中率。','No finished matches with AI predictions yet. Hit rates will appear here once the first predicted matches finish.'],
  ['藍線：前四（歐冠資格）· 紅線：降級區。點球隊看詳情。','Blue: top 4 (Champions League) · Red: relegation zone. Tap a team for details.'],
  ['AI 預測未出（將於本週第一場開賽前 1 小時發佈）· 統計基準 ',"AI prediction pending (published 1h before the round's first match) · Baseline "],
@@ -125,7 +125,7 @@ const PH=[['所有預測只供參考，單場波動很大，不構成投注建�
  ['上半被角球','1H corners against'],['上半進球','1H goals'],['上半失球','1H conceded'],['上半犯規','1H fouls'],['上半角球','1H corners'],['上半黃牌','1H yellows'],
  ['全場犯規','FT fouls'],['全場角球','FT corners'],['全場黃牌','FT yellows'],['雙方進球','BTTS'],['被角球','Corners against'],['被犯規','Fouled'],['xG / 被xG','xG / xGA'],
  ['AI 預測','AI pred.'],['AI 分析','AI analysis'],['AI 覆盤','AI review'],['無傷停','No absentees'],['無進球','No goals'],['進球：','Goals: '],['(烏龍)','(OG)'],['(點球)','(pen)'],
- ['本週首次','first'],['12小時檢查','12h check'],['賽前1小時','T-60min'],['賽前30分鐘','T-30min'],['手動更新','manual'],['舊版模型','legacy'],['舊模型','legacy'],
+ ['本週首次','first'],['12小時檢查','12h check'],['賽前1小時','T-60min'],['賽前30分鐘','T-30min'],['手動更新','manual'],['賽前突發','late change'],['舊版模型','legacy'],['舊模型','legacy'],
  ['下一場','Next match'],['控球%','Poss %'],['控球','Poss'],['射門','Shots'],['射正','On target'],['越位','Offsides'],['紅牌','Reds'],
  ['裁判：','Referee: '],['裁判','Referee'],['查於','checked'],['首發','XI'],['半場','HT'],['完場','FT'],['進行中','LIVE'],['延期','Postponed'],['主勝','Home'],['客勝','Away'],['大2.5','O2.5'],
  ['角球','Corners'],['黃牌','Yellows'],['犯規','Fouls'],['進球','Goals'],['失球','Conceded'],['信心','Conf.'],['比分','Score'],['實際','Actual'],['近況','Form'],['得失','GD'],['球隊','Team']];
@@ -146,7 +146,7 @@ function updHeader(){$('#upd').textContent=(LANG=='en'?'Updated: ':'數據更新
 
 const COL={ARS:'#db0007',MCI:'#6cabdd',CHE:'#034694',LIV:'#c8102e',MUN:'#da291c',TOT:'#132257',AVL:'#670e36',BHA:'#0057b8',BOU:'#b50e12',BRE:'#e30613',COC:'#59cbe8',CRY:'#1b458f',EVE:'#003399',FUL:'#222',HUL:'#f5a12d',IPS:'#3a64a3',LEE:'#ffcd00',NEW:'#241f20',NFO:'#dd0000',SUN:'#eb172b'};
 const DARKTXT={LEE:1,HUL:1,COC:1,MCI:1};
-const MODE={legacy:'舊版模型',round:'本週首次',check:'12小時檢查',pre60:'賽前1小時',pre30:'賽前30分鐘',manual:'手動更新'};
+const MODE={late:'賽前突發',legacy:'舊版模型',round:'本週首次',check:'12小時檢查',pre60:'賽前1小時',pre30:'賽前30分鐘',manual:'手動更新'};
 let D,N,app=document.getElementById('app'),wk=null,rkKey='g',tmSel=null;
 const $=s=>document.querySelector(s);
 const tz='Asia/Kuala_Lumpur';
@@ -304,7 +304,7 @@ function vWeek(r){
   h+=`<div class="small mute">第 ${wk} 輪 · ${ms.length} 場 · 已完場 ${done}</div>`;
   let lastDay='';
   for(const e of ms){const d=dayLbl(e.start);if(d!==lastDay){h+=`<div class="day">${d}</div>`;lastDay=d;}h+=matchCard(e);}
-  h+=`<div class="note">所有預測只供參考，單場波動很大，不構成投注建議。時間為馬來西亞時間。AI 預測於本週第一場開賽前 1 小時發佈，之後每 12 小時及每場賽前 1 小時、30 分鐘檢查，有新資訊才修正。</div>`;
+  h+=`<div class="note">所有預測只供參考，單場波動很大，不構成投注建議。時間為馬來西亞時間。AI 預測於本週第一場開賽前 1 小時發佈，之後每 12 小時及每場賽前 1 小時、30 分鐘檢查，有新資訊才修正；賽前 30 分鐘後如賠率大幅變動或首發有變，會再檢查一次。</div>`;
   app.innerHTML=h;
   const on=document.querySelector('#rch .on');if(on)on.scrollIntoView({inline:'center',block:'nearest'});
 }
