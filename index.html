@@ -11,21 +11,21 @@
 :root{--bg:#f4f5f7;--card:#fff;--ink:#14171c;--mute:#6b7280;--line:#e5e7eb;--soft:#f0f2f5;--acc:#5b2be0;--win:#16a34a;--draw:#9ca3af;--loss:#dc2626;--warn:#d97706;--h:#2563eb;--a:#e11d48;--shadow:0 1px 2px rgba(0,0,0,.06),0 4px 14px rgba(0,0,0,.04)}
 @media (prefers-color-scheme:dark){:root{--bg:#0d0f13;--card:#171a20;--ink:#e8eaed;--mute:#9aa1ad;--line:#262a33;--soft:#1e222a;--acc:#9b7bff;--h:#60a5fa;--a:#fb7185;--shadow:none}}
 *{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Noto Sans TC",system-ui,sans-serif;padding-bottom:calc(64px + env(safe-area-inset-bottom))}
+body{margin:0;background:var(--bg);color:var(--ink);font:16.5px/1.55 "Noto Sans TC",system-ui,sans-serif;padding-bottom:calc(64px + env(safe-area-inset-bottom))}
 .num,.sc{font-family:"Saira Condensed",system-ui,sans-serif;font-variant-numeric:tabular-nums}
 header{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 14px 6px;border-bottom:1px solid var(--line)}
 header h1{margin:0;font:700 20px "Saira Condensed","Noto Sans TC";letter-spacing:.3px}
 header .sub{color:var(--mute);font-size:12px}
 main{max-width:760px;margin:0 auto;padding:10px 12px}
 nav.tabs{position:fixed;bottom:0;left:0;right:0;z-index:9;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
-nav.tabs a{flex:1;text-align:center;padding:8px 0 7px;color:var(--mute);text-decoration:none;font-size:12px}
+nav.tabs a{flex:1;text-align:center;padding:8px 0 7px;color:var(--mute);text-decoration:none;font-size:12.5px}
 nav.tabs a b{display:block;font-size:18px;line-height:1.2}
 nav.tabs a.on{color:var(--acc);font-weight:700}
 .card{background:var(--card);border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--line);margin:10px 0;overflow:hidden}
 .pad{padding:12px 14px}
 .row{display:flex;align-items:center;gap:8px}
 .sp{flex:1}
-.mute{color:var(--mute)}.small{font-size:12px}.xs{font-size:11px}
+.mute{color:var(--mute)}.small{font-size:14px}.xs{font-size:12.5px}
 .chips{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
 a.chip{text-decoration:none}
 .chip{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:5px 11px;font-size:13px;cursor:pointer;white-space:nowrap}
@@ -42,24 +42,24 @@ a.chip{text-decoration:none}
 .pbar div{display:flex;align-items:center;justify-content:center;min-width:0}
 .pbar .ph{background:var(--h)}.pbar .pd{background:var(--draw)}.pbar .pa{background:var(--a)}
 .kv{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.kv span{background:var(--soft);border-radius:8px;padding:3px 8px;font-size:12px}
+.kv span{background:var(--soft);border-radius:8px;padding:4px 9px;font-size:13.5px}
 .kv b{font-family:"Saira Condensed";font-size:14px;margin-left:3px}
 .tag{display:inline-block;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:700}
 .tag.ai{background:color-mix(in srgb,var(--acc) 15%,transparent);color:var(--acc)}
 .tag.live{background:#dc2626;color:#fff}.tag.ft{background:var(--soft);color:var(--mute)}
 .tag.ok{background:color-mix(in srgb,var(--win) 16%,transparent);color:var(--win)}
 .tag.bad{background:color-mix(in srgb,var(--loss) 14%,transparent);color:var(--loss)}
-.headline{margin-top:8px;font-size:14px}
+.headline{margin-top:8px;font-size:15.5px}
 details>summary{list-style:none;cursor:pointer}details>summary::-webkit-details-marker{display:none}
-.more{border-top:1px dashed var(--line);margin-top:10px;padding-top:10px}
-.cmp{width:100%;border-collapse:collapse;font-size:13px}
+.more{margin-top:6px}
+.cmp{width:100%;border-collapse:collapse;font-size:14px}
 .cmp th,.cmp td{padding:5px 4px;border-bottom:1px solid var(--line);text-align:center}
 .cmp th:first-child,.cmp td:first-child{text-align:left;color:var(--mute);font-weight:500}
-.cmp td{font-family:"Saira Condensed";font-size:15px}
+.cmp td{font-family:"Saira Condensed";font-size:16px}
 ul.reasons{margin:6px 0;padding-left:18px}ul.reasons li{margin:3px 0}
 .hist{border-left:2px solid var(--line);margin:6px 0 0 4px;padding-left:10px}
-.hist div{margin:4px 0;font-size:12px}
-.inj{font-size:12px;margin:3px 0}
+.hist div{margin:5px 0;font-size:13.5px}
+.inj{font-size:14px;margin:4px 0}
 .tbl{width:100%;border-collapse:collapse;font-size:13px}
 .tbl th{font-weight:500;color:var(--mute);font-size:11px;padding:6px 3px;text-align:center;border-bottom:1px solid var(--line)}
 .tbl td{padding:7px 3px;text-align:center;border-bottom:1px solid var(--line);font-family:"Saira Condensed";font-size:15px}
@@ -80,10 +80,14 @@ ul.reasons{margin:6px 0;padding-left:18px}ul.reasons li{margin:3px 0}
 .big{font:700 32px "Saira Condensed"}
 .note{font-size:12px;color:var(--mute);margin:14px 4px}
 .sec{font-weight:700;margin:14px 2px 2px;font-size:15px}
-.tl{margin:6px 0;font-size:13px}.tl .ev{display:grid;grid-template-columns:1fr 46px 1fr;gap:6px;align-items:center;padding:3px 0;border-bottom:1px dashed var(--line)}
+.tl{margin:6px 0;font-size:14px}.tl .ev{display:grid;grid-template-columns:1fr 46px 1fr;gap:6px;align-items:center;padding:3px 0;border-bottom:1px dashed var(--line)}
 .tl .ev:last-child{border-bottom:0}.tl .m{text-align:center;font:600 13px "Saira Condensed";color:var(--mute)}.tl .h{text-align:right}.tl .ht{text-align:center;font-size:11px;color:var(--mute);padding:4px 0;background:var(--soft);border-radius:6px;margin:4px 0}
 .ic{display:inline-block;width:10px;height:13px;border-radius:2px;vertical-align:-2px}.ic.y{background:#facc15}.ic.r{background:#dc2626}.ic.yr{background:linear-gradient(90deg,#facc15 50%,#dc2626 50%)}
-.lu{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px}.lu .p{display:flex;gap:5px;align-items:center;padding:2px 0}.lu .no{width:20px;text-align:right;color:var(--mute);font-family:"Saira Condensed"}.lu .rt{margin-left:auto;font:600 12px "Saira Condensed";padding:0 4px;border-radius:4px;color:#fff}
+.lu{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13.5px}.lu .p{display:flex;gap:5px;align-items:center;padding:2px 0}.lu .no{width:20px;text-align:right;color:var(--mute);font-family:"Saira Condensed"}.lu .rt{margin-left:auto;font:600 12px "Saira Condensed";padding:0 4px;border-radius:4px;color:#fff}
+details.sub{border-top:1px solid var(--line)}details.sub>summary{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px 0;font-size:15px}
+details.sub>summary .chev{color:var(--mute);transition:transform .15s}details.sub[open]>summary .chev{transform:rotate(180deg)}.subb{padding:0 0 12px}
+.sec2{font-weight:700;margin:12px 0 4px;font-size:14.5px}ul.reasons{font-size:15px}
+details.more>summary{padding:10px 0;font-size:15px;border-top:1px solid var(--line)}
 .empty{padding:24px;text-align:center;color:var(--mute)}
 </style>
 </head>
@@ -201,8 +205,11 @@ function matchCard(e,open){
    ${pb}${kv}${htl}${head}<div class="row" style="margin-top:8px">${ver}<span class="sp"></span><span class="xs mute">點擊看詳情 ▾</span></div>
   </summary><div class="pad" style="padding-top:0">${body}</div></details></div>`;
 }
+function sec(icon,title,body,open,sub){if(!body)return '';return `<details class="sub" ${open?'open':''}><summary><span>${icon} <b>${title}</b>${sub?` <span class="xs mute">${sub}</span>`:''}</span><span class="chev">▾</span></summary><div class="subb">${body}</div></details>`}
 function detail(e,g,v,P,rv,pre,bl){
-  let h='<div class="more">';
+  const en=LANG=='en';let out='<div class="more">';
+  // 1. AI prediction
+  let h='';
   if(v){
     const rows=[['比分',v.score.slice(0,3).join(' / '),g?`${g.ft[0]}-${g.ft[1]}`:null],['半場',v.ht_score,g?`${g.ht[0]}-${g.ht[1]}`:null],
       ['上半進球',v.g1?f1(v.g1[0])+' - '+f1(v.g1[1]):'–',g?`${g.ht[0]}-${g.ht[1]}`:null],
@@ -210,36 +217,73 @@ function detail(e,g,v,P,rv,pre,bl){
       ['上半黃牌',pair(v.y1),g&&pair(g.y1,0)],['全場黃牌',pair(v.y),g&&pair(g.y,0)]];
     h+=`<table class="cmp"><tr><th></th><th>AI 預測</th>${g?'<th>實際</th>':''}</tr>${rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td>${g?`<td>${r[2]??'–'}</td>`:''}</tr>`).join('')}</table>`;
     if(v.ht_p)h+=`<div class="small mute" style="margin-top:6px">半場形勢：主領先 ${Math.round(v.ht_p[0])}% · 平局 ${Math.round(v.ht_p[1])}% · 客領先 ${Math.round(v.ht_p[2])}%</div>`;
-    if(v.reasons&&v.reasons.length)h+=`<div class="sec" style="font-size:13px">AI 分析</div><ul class="reasons small">${F(v,'reasons').map(r=>`<li>${esc(r)}</li>`).join('')}</ul>`;
+    if(v.reasons&&v.reasons.length)h+=`<div class="sec2">AI 分析</div><ul class="reasons">${F(v,'reasons').map(r=>`<li>${esc(r)}</li>`).join('')}</ul>`;
     if(v.key_changes)h+=`<div class="small"><b>本版改動：</b>${esc(F(v,'key_changes'))}</div>`;
-  }
+    if(bl&&e.status!=='finished')h+=`<div class="xs mute" style="margin-top:8px">統計基準（賠率＋本季數據）：主${Math.round(bl.p[0])}/平${Math.round(bl.p[1])}/客${Math.round(bl.p[2])}；只用本季數據：主${Math.round(bl.model_p[0])}/平${Math.round(bl.model_p[1])}/客${Math.round(bl.model_p[2])}</div>`;
+  } else if(bl&&e.status!=='finished')h+=`<div class="small mute">統計基準（賠率＋本季數據）：主${Math.round(bl.p[0])}/平${Math.round(bl.p[1])}/客${Math.round(bl.p[2])}</div>`;
+  out+=sec('🔮',en?'AI prediction':'AI 預測',h,true,v?stamp(v.ts):'');
+  // 2. half-time
   const HTc=(D.halftime||{})[e.id];
-  if(HTc){const en=LANG=='en',fh=HTc.first_half||{},pr=x=>x?`${x[0]}-${x[1]}`:'–';
-    h+=`<div class="sec" style="font-size:13px">⏸️ ${en?'Half-time AI check':'半場 AI 檢討'} <span class="xs mute">${stamp(HTc.ts)} · ${en?'HT':'半場'} ${HTc.ht[0]}-${HTc.ht[1]}</span></div>
-    <div class="xs mute">${en?'1st half':'上半場'}：${en?'Poss':'控球'} ${pr(fh.poss)} · xG ${pr(fh.xg)} · ${en?'Shots':'射門'} ${pr(fh.shots)}(${pr(fh.sot)}) · ${en?'Corners':'角球'} ${pr(fh.c)} · ${en?'Fouls':'犯規'} ${pr(fh.f)} · ${en?'Yellows':'黃牌'} ${pr(fh.y)}${fh.r&&(+fh.r[0]||+fh.r[1])?' · '+(en?'Reds':'紅牌')+' '+pr(fh.r):''}</div>
-    <div class="small" style="margin-top:4px"><b>${esc(F(HTc,'verdict'))}</b></div><ul class="reasons small">${(F(HTc,'points')||[]).map(r=>`<li>${esc(r)}</li>`).join('')}</ul>
+  if(HTc){const fh=HTc.first_half||{},pr=x=>x?`${x[0]}-${x[1]}`:'–';
+    out+=sec('⏸️',en?'Half-time AI check':'半場 AI 檢討',`<div class="xs mute">${en?'1st half':'上半場'}：${en?'Poss':'控球'} ${pr(fh.poss)} · xG ${pr(fh.xg)} · ${en?'Shots':'射門'} ${pr(fh.shots)}(${pr(fh.sot)}) · ${en?'Corners':'角球'} ${pr(fh.c)} · ${en?'Fouls':'犯規'} ${pr(fh.f)} · ${en?'Yellows':'黃牌'} ${pr(fh.y)}${fh.r&&(+fh.r[0]||+fh.r[1])?' · '+(en?'Reds':'紅牌')+' '+pr(fh.r):''}</div>
+    <div style="margin-top:4px"><b>${esc(F(HTc,'verdict'))}</b></div><ul class="reasons">${(F(HTc,'points')||[]).map(r=>`<li>${esc(r)}</li>`).join('')}</ul>
     <div class="small"><b>${en?'Updated full-time call: ':'更新全場預測：'}</b>${en?'H':'主'}${Math.round(HTc.p[0])}/${en?'D':'平'}${Math.round(HTc.p[1])}/${en?'A':'客'}${Math.round(HTc.p[2])} · ${(HTc.score||[]).join(' / ')} · ${en?'Corners':'角球'} ${f1(sum(HTc.c))} · ${en?'Yellows':'黃牌'} ${f1(sum(HTc.y))} · ${en?'Fouls':'犯規'} ${f1(sum(HTc.f))}</div>
-    ${HTc.headline?`<div class="small mute">${esc(F(HTc,'headline'))}</div>`:''}${HTc.changes?`<div class="small"><b>${en?'Changes: ':'改動：'}</b>${esc(F(HTc,'changes'))}</div>`:''}`;}
-  if(rv)h+=`<div class="sec" style="font-size:13px">AI 覆盤</div><div class="small"><b>${esc(F(rv,'verdict'))}</b></div><ul class="reasons small">${(F(rv,'points')||[]).map(r=>`<li>${esc(r)}</li>`).join('')}</ul>${rv.lesson?`<div class="small mute">下次注意：${esc(F(rv,'lesson'))}</div>`:''}`;
-  if(g&&g.goals.length&&!g.tl)h+=`<div class="small" style="margin-top:8px"><b>進球：</b>${g.goals.map(x=>`${x[0]}' ${nm(x[1]=='H'?e.home:e.away)} ${esc(x[3]||'')}${x[2]=='ownGoal'?'(烏龍)':x[2]=='penalty'?'(點球)':''}`).join('、')}</div>`;
-  if(g)h+=tlHtml(g)+luHtml(g);
-  if(g)h+=`<div class="small mute">控球 ${g.poss[0]}%-${g.poss[1]}% · xG ${g.xg[0]}-${g.xg[1]} · 射門 ${g.shots[0]}(${g.sot[0]})-${g.shots[1]}(${g.sot[1]})${g.referee?' · 裁判 '+esc(g.referee):''}</div>`;
-  h+=featHtml(e);
-  if(pre&&e.status!=='finished'){
-    h+=`<div class="sec" style="font-size:13px">傷停／首發 <span class="xs mute">${pre.confirmed?'首發已公佈':'首發未公佈'} · 查於 ${stamp(pre.fetched)}</span></div>`;
-    for(const s of ['home','away']){const x=pre[s];if(!x)continue;
-      h+=`<div class="inj"><b>${nm(e[s])}</b>：${x.missing.length?x.missing.map(m=>`${esc(m.name)}<span class="mute">(${m.type=='missing'?'缺':'疑'}${m.desc?'·'+esc(trInj(m.desc)):''})</span>`).join('、'):'無傷停'}</div>`;
-      if(pre.confirmed)h+=`<div class="inj mute">首發 ${x.formation||''}：${x.xi.map(esc).join('、')}</div>`;}
-    if(pre.referee)h+=`<div class="inj mute">裁判：${esc(pre.referee)}</div>`;
+    ${HTc.headline?`<div class="small mute">${esc(F(HTc,'headline'))}</div>`:''}${HTc.changes?`<div class="small"><b>${en?'Changes: ':'改動：'}</b>${esc(F(HTc,'changes'))}</div>`:''}`,!g,`${en?'HT':'半場'} ${HTc.ht[0]}-${HTc.ht[1]} · ${stamp(HTc.ts)}`);}
+  // 3. review
+  if(rv)out+=sec('📝','AI 覆盤',`<div><b>${esc(F(rv,'verdict'))}</b></div><ul class="reasons">${(F(rv,'points')||[]).map(r=>`<li>${esc(r)}</li>`).join('')}</ul>${rv.lesson?`<div class="small mute">下次注意：${esc(F(rv,'lesson'))}</div>`:''}`,true);
+  // 4. match facts
+  if(g){
+    out+=sec('📊',en?'Match stats':'比賽數據',`<div class="small">控球 ${g.poss[0]}%-${g.poss[1]}% · xG ${g.xg[0]}-${g.xg[1]} · 射門 ${g.shots[0]}(${g.sot[0]})-${g.shots[1]}(${g.sot[1]}) · 角球 ${g.c[0]}-${g.c[1]} · 犯規 ${g.f[0]}-${g.f[1]} · 黃牌 ${g.y[0]}-${g.y[1]}${g.referee?' · 裁判 '+esc(g.referee):''}</div>`+(g.goals.length&&!g.tl?`<div class="small" style="margin-top:6px"><b>進球：</b>${g.goals.map(x=>`${x[0]}' ${nm(x[1]=='H'?e.home:e.away)} ${esc(x[3]||'')}`).join('、')}</div>`:''),false);
+    out+=tlHtml(g)+luHtml(g);
   }
+  // 5. pre-match
+  if(e.status!=='finished'){
+    out+=sec('📋',en?'Form, schedule & odds':'實力、賽程與賠率',featHtml(e),false,en?'Elo · rest · absences · odds':'Elo · 休息 · 缺陣 · 賠率');
+    out+=ctxHtml(e);
+    if(pre){let x='';
+      for(const s of ['home','away']){const y=pre[s];if(!y)continue;
+        x+=`<div class="inj"><b>${nm(e[s])}</b>：${y.missing.length?y.missing.map(m=>`${esc(m.name)}<span class="mute">(${m.type=='missing'?'缺':'疑'}${m.desc?'·'+esc(trInj(m.desc)):''})</span>`).join('、'):'無傷停'}</div>`;
+        if(pre.confirmed)x+=`<div class="inj mute">首發 ${y.formation||''}：${y.xi.map(esc).join('、')}</div>`;}
+      if(pre.referee)x+=`<div class="inj mute">裁判：${esc(pre.referee)}</div>`;
+      out+=sec('🩹',en?'Injuries & line-ups':'傷停／首發',x,false,`${pre.confirmed?'首發已公佈':'首發未公佈'} · 查於 ${stamp(pre.fetched)}`);}
+  }
+  // 6. prediction history
   if(P&&(P.versions.length>1||P.checks.length)){
-    h+=`<div class="sec" style="font-size:13px">預測紀錄</div><div class="hist">`;
     const ev=[...P.versions.map(x=>({ts:x.ts,t:`<b>第${x.n}版</b>（${MODE[x.mode]||x.mode}）主${Math.round(x.p[0])}/平${Math.round(x.p[1])}/客${Math.round(x.p[2])} · ${x.score[0]}`})),
       ...P.checks.filter(c=>!c.changed).map(c=>({ts:c.ts,t:`<span class="mute">${MODE[c.mode]||c.mode}：已檢查，維持預測</span>`}))].sort((a,b)=>b.ts-a.ts);
-    h+=ev.map(x=>`<div><span class="mute num">${stamp(x.ts)}</span> ${x.t}</div>`).join('')+'</div>';
+    out+=sec('🕘','預測紀錄','<div class="hist">'+ev.map(x=>`<div><span class="mute num">${stamp(x.ts)}</span> ${x.t}</div>`).join('')+'</div>',false,`${P.versions.length}${en?' versions':' 版'}`);
   }
-  if(bl&&e.status!=='finished')h+=`<div class="xs mute" style="margin-top:8px">統計基準（賠率＋本季數據）：主${Math.round(bl.p[0])}/平${Math.round(bl.p[1])}/客${Math.round(bl.p[2])}；只用本季數據：主${Math.round(bl.model_p[0])}/平${Math.round(bl.model_p[1])}/客${Math.round(bl.model_p[2])}</div>`;
-  return h+'</div>';
+  return out+'</div>';
+}
+function ctxHtml(e){
+  const C=(D.ctx||{}).match||{},x=C[e.id],en=LANG=='en';if(!x)return '';
+  const yr=ts=>new Date(ts*1000).getFullYear(),dt=ts=>fmt(ts,{year:'numeric',month:'numeric',day:'numeric'});
+  let o='';const H=x.h2h||{};
+  if(H.last10&&H.last10.length){
+    const res=r=>{const hw=r[4]>r[5],aw=r[5]>r[4];const pov=e.home;const w=(r[2]==pov&&hw)||(r[3]==pov&&aw),l=(r[2]==pov&&aw)||(r[3]==pov&&hw);return w?'W':l?'L':'D'};
+    o+=`<div class="small">${en?'Results from '+nm(e.home)+"'s view":'以'+nm(e.home)+'角度'}：<span class="dots">${H.last10.map(r=>`<i class="${res(r)}" style="width:10px;height:10px"></i>`).join('')}</span></div>`;
+    o+=`<table class="cmp" style="margin-top:6px">${H.last10.map(r=>`<tr><td class="xs">${dt(r[0])}<div class="xs mute">${comp(r[1])}</div></td><td style="text-align:right;font-family:inherit;font-size:13px">${nm(r[2])}</td><td><b>${r[4]}-${r[5]}</b></td><td style="text-align:left;font-family:inherit;font-size:13px">${nm(r[3])}</td></tr>`).join('')}</table>`;
+    o+=`<div class="small" style="margin-top:6px">🏟️ ${en?`${nm(e.away)}'s last league win away at ${nm(e.home)}: `:`${nm(e.away)}上一次在聯賽作客贏${nm(e.home)}：`}<b>${H.last_away_win?yr(H.last_away_win):(en?'none on record':'紀錄內從未')}</b> <span class="xs mute">(${en?'league meetings at this ground on record':'紀錄內此場地聯賽交手'} ${H.league_here_n}${en?'':' 次'}${H.oldest?(en?', since ':'，最早 ')+yr(H.oldest):''})</span></div>`;
+    const ls=H.last_season||[];
+    o+=`<div class="small" style="margin-top:4px">📅 ${en?'Last season':'上賽季'} (${H.prev_season})：${ls.length?ls.map(r=>`${nm(r[2])} ${r[4]}-${r[5]} ${nm(r[3])} <span class="xs mute">${comp(r[1])}</span>`).join('；'):(en?'did not meet':'沒有交手')}</div>`;
+    o+=`<div class="xs mute" style="margin-top:4px">${en?'Head-to-head history carries little predictive weight once current strength and injuries are known.':'計算了目前實力和傷停後，對賽紀錄的預測作用很小，只作參考。'}</div>`;
+  }
+  let b='';
+  const M=x.motivation||{};const tg={'爭冠':'Title race','爭前四（歐冠）':'Top-4 race','護級':'Relegation fight','中游':'Mid-table'};
+  for(const s of ['home','away']){const m=M[s];if(!m)continue;
+    b+=`<div class="small">${badge(e[s])} <b>${nm(e[s])}</b> ${en?'#'+m.pos:'第'+m.pos+'位'} · ${m.pts}${en?' pts':' 分'} · ${m.tags.map(t=>`<span class="tag ai">${en?tg[t]||t:t}</span>`).join(' ')} <span class="xs mute">${en?`${m.gap_top} off top · ${m.gap_safe} above drop · ${m.left} left`:`落後榜首 ${m.gap_top} 分 · 高於降級區 ${m.gap_safe} 分 · 尚餘 ${m.left} 場`}</span></div>`;}
+  if(M.derby)b+=`<div class="small">🔥 <b>${en?'Derby / rivalry':'德比／宿敵戰'}</b>：${M.derby}</div>`;
+  if(M.home&&M.home.early)b+=`<div class="xs mute">${en?'Early season: table position says little about motivation yet.':'賽季初段，排名對比賽動機的影響還不大。'}</div>`;
+  if(x.managers)b+=`<div class="xs mute" style="margin-top:4px">${en?'Managers':'主帥'}：${esc(x.managers[0]||'?')} vs ${esc(x.managers[1]||'?')}</div>`;
+  const S=(D.ctx||{}).split||{};
+  const row=(c,k)=>{const t=(S[c]||{})[k];if(!t||!t.n)return `<td colspan="5" class="mute">–</td>`;return `<td>${t.w}-${t.d}-${t.l}</td><td>${t.ppg}</td><td>${t.gf}-${t.ga}</td><td>${t.xg}-${t.xga}</td><td>${t.c}</td>`};
+  b+=`<div class="sec2">${en?'Home / away form this season':'本季主客場表現'}</div><div style="overflow-x:auto"><table class="cmp"><tr><th></th><th>${en?'W-D-L':'勝-平-負'}</th><th>${en?'Pts/g':'場均分'}</th><th>${en?'Goals':'進-失'}</th><th>xG</th><th>${en?'Corners':'角球'}</th></tr>
+    <tr><td>${nm(e.home)} ${en?'(home)':'（主場）'}</td>${row(e.home,'home')}</tr><tr><td>${nm(e.away)} ${en?'(away)':'（作客）'}</td>${row(e.away,'away')}</tr></table></div>`;
+  const W=x.weather;
+  if(W){const ic=W.code>=95?'⛈️':W.code>=71&&W.code<80?'🌨️':W.code>=51?'🌧️':W.code>=45?'🌫️':W.code>=2?'☁️':'☀️';
+    const warn=(W.wind>=35||W.gust>=55)?(en?' ⚠️ strong wind':' ⚠️ 強風'):(W.rain>=3?(en?' ⚠️ heavy rain':' ⚠️ 大雨'):'');
+    b+=`<div class="sec2">${en?'Weather at kick-off':'開賽時天氣'}${x.venue?` <span class="xs mute">${esc(x.venue)}</span>`:''}</div><div class="small">${ic} ${en?W.desc_en:W.desc} · ${W.temp}°C · ${en?'rain chance':'降雨機率'} ${W.rain_p??'–'}% (${W.rain}mm) · ${en?'wind':'風速'} ${W.wind} km/h (${en?'gusts':'陣風'} ${W.gust})<b style="color:var(--loss)">${warn}</b></div>`;}
+  return sec('⚔️',en?'Head-to-head':'對賽紀錄',o,false,en?'last 10 · last away win · last season':'最近10場 · 上次客勝 · 上賽季')+sec('🎯',en?'Context: motivation, home/away, weather':'比賽背景：動機、主客場、天氣',b,false);
 }
 function pair(a,dec=1){if(!a||a[0]==null)return '–';return dec?`${f1(a[0])} - ${f1(a[1])} <span class="mute">(${f1(sum(a))})</span>`:`${a[0]}-${a[1]} <span class="mute">(${sum(a)})</span>`}
 const INJ={'Hamstring Injury':'腿筋','Knee Injury':'膝傷','Ankle Injury':'腳踝','Muscle Injury':'肌肉','Back Injury':'背傷','Knock Injury':'碰傷','Calf Injury':'小腿','Groin Injury':'腹股溝','Thigh Injury':'大腿','Foot Injury':'腳傷','Illness':'生病','Unknown':'不明','Suspended':'停賽','red_card_suspension':'紅牌停賽','yellow_card_suspension':'累積黃牌停賽','Cruciate Ligament Injury':'十字韌帶','Achilles Tendon Injury':'跟腱','Shoulder Injury':'肩傷','Head Injury':'頭部','Hip Injury':'髖部','Concussion':'腦震盪','Ineligible':'不符資格','Broken Leg':'斷腿','Toe Injury':'腳趾','Lack of match fitness':'狀態未足'};
@@ -443,7 +487,7 @@ function featHtml(e){
     if(first&&cur){const arrow=(a,b)=>{const x=+f(a),y=+f(b);return y<x-0.02?'<span style="color:var(--win)">▼</span>':y>x+0.02?'<span style="color:var(--loss)">▲</span>':''};
       h+=`<div class="small" style="margin-top:6px"><b>${en?'Odds movement':'賠率走勢'}</b> <span class="xs mute">${en?'opening → now (▼ = market more confident)':'開盤 → 現在（▼ 代表市場更看好）'}</span></div>
       <div class="xs">${['1','X','2'].map((k,i)=>`${[en?'Home':'主勝',en?'Draw':'平',en?'Away':'客勝'][i]} ${f(first[k])} → <b>${f(cur[k])}</b>${arrow(first[k],cur[k])}`).join(' · ')}</div>`;}}
-  return h?`<div class="sec" style="font-size:13px">📋 ${en?'Pre-match data':'賽前資料'}</div>${h}`:'';
+  return h;
 }
 load().catch(e=>{app.innerHTML='<div class="card empty">載入失敗：'+e+'</div>'});
 </script>
