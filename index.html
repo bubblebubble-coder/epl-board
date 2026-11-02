@@ -159,7 +159,7 @@ const hm=ts=>fmt(ts,{hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
 const md=ts=>fmt(ts,{month:'numeric',day:'numeric'});
 const dayLbl=ts=>fmt(ts,{month:'long',day:'numeric',weekday:'short'});
 const stamp=ts=>md(ts)+' '+hm(ts);
-const nm=c=>LGK!='epl'?(N[c]||c):LANG=='en'?(EN_TEAM[c]||c):(N[c]||c);
+const nm=c=>N[c]||EN_TEAM[c]||c;
 const badge=c=>`<span class="badge" style="background:${COL[c]||'#666'};${DARKTXT[c]?'color:#111':''}">${c}</span>`;
 const f1=x=>x==null?'–':(+x).toFixed(1);
 const sum=a=>a&&a[0]!=null?(+a[0])+(+a[1]):null;
