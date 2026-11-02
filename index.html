@@ -92,7 +92,7 @@ details.more>summary{padding:10px 0;font-size:15px;border-top:1px solid var(--li
 </style>
 </head>
 <body>
-<header><div class="row"><h1>英超數據板 <span class="num">2026/27</span></h1><span class="sp"></span><button id="lang" class="chip" onclick="setLang(LANG=='zh'?'en':'zh')">中文</button></div><div class="sub" id="upd">載入中…</div></header>
+<header><div class="row"><h1>英超數據板 <span class="num">2026/27</span></h1><span class="sp"></span><span id="lgsw" class="row" style="gap:4px"></span><button id="lang" class="chip" onclick="setLang(LANG=='zh'?'en':'zh')">中文</button></div><div class="sub" id="upd">載入中…</div></header>
 <main id="app"></main>
 <nav class="tabs">
  <a href="#week" data-t="week"><b>⚽</b>本週</a>
@@ -104,6 +104,8 @@ details.more>summary{padding:10px 0;font-size:15px;border-top:1px solid var(--li
 </nav>
 <script>
 let LANG='en';try{localStorage.removeItem('lang')}catch(e){}
+const LGS={epl:{file:'data.json',zh:'英超',en:'Premier League',flag:'🏴',short:'EPL'},laliga:{file:'data-laliga.json',zh:'西甲',en:'LaLiga',flag:'🇪🇸',short:'LaLiga'}};
+const LGK=LGS[new URLSearchParams(location.search).get('lg')]?new URLSearchParams(location.search).get('lg'):'epl',LGI=LGS[LGK];
 const EN_TEAM={ARS:'Arsenal',MCI:'Man City',CHE:'Chelsea',LIV:'Liverpool',MUN:'Man United',TOT:'Tottenham',AVL:'Aston Villa',BHA:'Brighton',BOU:'Bournemouth',BRE:'Brentford',COC:'Coventry',CRY:'Crystal Palace',EVE:'Everton',FUL:'Fulham',HUL:'Hull City',IPS:'Ipswich',LEE:'Leeds',NEW:'Newcastle',NFO:"Nott'm Forest",SUN:'Sunderland'};
 const F=(o,k)=>{const e=o[k+'_en'];return LANG=='en'&&e&&(Array.isArray(e)?e.length:1)?e:o[k]};
 function setLang(l){LANG=l;document.documentElement.lang=l=='en'?'en':'zh-Hant';if(D)updHeader();route();}
@@ -141,11 +143,13 @@ function i18n(){
     n.nodeValue=t;}
 }
 function updHeader(){$('#upd').textContent=(LANG=='en'?'Updated: ':'數據更新：')+stamp(D.updated)+(LANG=='en'?' (MYT)':'（馬來西亞時間）')+(D.last_check?(LANG=='en'?' · last check ':' · 最後檢查 ')+stamp(D.last_check):'');$('#lang').textContent=LANG=='en'?'中文':'EN';
-  document.querySelector('header h1').firstChild.nodeValue=LANG=='en'?'Premier League Board ':'英超數據板 ';
+  document.querySelector('header h1').firstChild.nodeValue=LANG=='en'?LGI.en+' Board ':LGI.zh+'數據板 ';document.title=(LANG=='en'?LGI.en+' Board':LGI.zh+'數據板')+' 2026/27';
+  $('#lgsw').innerHTML=Object.entries(LGS).map(([k,v])=>`<a class="chip ${k==LGK?'on':''}" href="${k=='epl'?'./':'?lg='+k}">${v.flag} ${LANG=='en'?v.short:v.zh}</a>`).join('');
   document.querySelectorAll('nav.tabs a').forEach(a=>{a.lastChild.nodeValue=LANG=='en'?{week:'Week',table:'Table',team:'Teams',rank:'Rankings',acc:'Accuracy',sim:'Sim'}[a.dataset.t]:{week:'本週',table:'積分榜',team:'球隊',rank:'排行',acc:'準確度',sim:'模擬'}[a.dataset.t]});}
 
 const COL={ARS:'#db0007',MCI:'#6cabdd',CHE:'#034694',LIV:'#c8102e',MUN:'#da291c',TOT:'#132257',AVL:'#670e36',BHA:'#0057b8',BOU:'#b50e12',BRE:'#e30613',COC:'#59cbe8',CRY:'#1b458f',EVE:'#003399',FUL:'#222',HUL:'#f5a12d',IPS:'#3a64a3',LEE:'#ffcd00',NEW:'#241f20',NFO:'#dd0000',SUN:'#eb172b'};
-const DARKTXT={LEE:1,HUL:1,COC:1,MCI:1};
+Object.assign(COL,LGK=='laliga'?{BAR:'#a50044',RMA:'#febe10',ATM:'#cb3524',BET:'#0bb363',RSO:'#0067b1',SEV:'#d71920',ATH:'#ee2523',VIL:'#ffe667',CEL:'#8ac3ee',ALA:'#0761af',RAY:'#e53027',GET:'#005999',COR:'#1a5bab',ESP:'#007fc8',OSA:'#d91a21',SAN:'#00843d',ELC:'#05642c',LEV:'#b4053f',VAL:'#ee3524',MCF:'#3d7ac1'}:{});
+const DARKTXT=LGK=='laliga'?{RMA:1,VIL:1,CEL:1}:{LEE:1,HUL:1,COC:1,MCI:1};
 const MODE={late:'賽前突發',legacy:'舊版模型',round:'本週首次',check:'12小時檢查',pre60:'賽前1小時',pre30:'賽前30分鐘',manual:'手動更新'};
 let D,N,app=document.getElementById('app'),wk=null,rkKey='g',tmSel=null;
 const $=s=>document.querySelector(s);
@@ -155,14 +159,14 @@ const hm=ts=>fmt(ts,{hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
 const md=ts=>fmt(ts,{month:'numeric',day:'numeric'});
 const dayLbl=ts=>fmt(ts,{month:'long',day:'numeric',weekday:'short'});
 const stamp=ts=>md(ts)+' '+hm(ts);
-const nm=c=>LANG=='en'?(EN_TEAM[c]||c):(N[c]||c);
+const nm=c=>LGK!='epl'?(N[c]||c):LANG=='en'?(EN_TEAM[c]||c):(N[c]||c);
 const badge=c=>`<span class="badge" style="background:${COL[c]||'#666'};${DARKTXT[c]?'color:#111':''}">${c}</span>`;
 const f1=x=>x==null?'–':(+x).toFixed(1);
 const sum=a=>a&&a[0]!=null?(+a[0])+(+a[1]):null;
 const esc=s=>(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 
 async function load(){
-  const r=await fetch('data.json?t='+Date.now());D=await r.json();N=D.names;
+  const r=await fetch(LGI.file+'?t='+Date.now());D=await r.json();N=D.names;
   updHeader();
   route();
 }
@@ -464,7 +468,7 @@ function luHtml(g){
 }
 
 /* ---------- pre-match features ---------- */
-const COMP={'Premier League':['EPL','英超'],'UEFA Champions League':['UCL','歐冠'],'UEFA Europa League':['UEL','歐聯杯'],'UEFA Conference League':['UECL','歐協聯'],'UEFA Europa Conference League':['UECL','歐協聯'],'EFL Cup':['EFL Cup','聯賽杯'],'FA Cup':['FA Cup','足總杯']};
+const COMP={'Premier League':['EPL','英超'],'UEFA Champions League':['UCL','歐冠'],'UEFA Europa League':['UEL','歐聯杯'],'UEFA Conference League':['UECL','歐協聯'],'UEFA Europa Conference League':['UECL','歐協聯'],'EFL Cup':['EFL Cup','聯賽杯'],'FA Cup':['FA Cup','足總杯'],'LaLiga':['LaLiga','西甲'],'LaLiga 2':['LaLiga 2','西乙'],'Copa del Rey':['Copa del Rey','國王杯'],'Supercopa de España':['Supercopa','西班牙超級杯']};
 const comp=c=>c?(COMP[c]?COMP[c][LANG=='en'?0:1]:c):'';
 const TIER={'主力':'Key','輪換':'Rotation','替補':'Squad','後備':'Squad','未上陣':'Not played','未出場':'Not played'};
 function featHtml(e){
