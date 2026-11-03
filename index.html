@@ -198,6 +198,9 @@ function matchCard(e,open){
    <div class="row xs mute" style="margin-top:2px"><span>主勝</span><span class="sp" style="text-align:center">平</span><span>客勝</span></div>`:'';
   const kv=pv?`<div class="kv"><span>大2.5<b>${Math.round(pv.over25)}%</b></span><span>雙方進球<b>${Math.round(pv.btts)}%</b></span><span>上半角球<b>${f1(sum(pv.c1))}</b></span><span>全場角球<b>${f1(sum(pv.c))}</b></span><span>黃牌<b>${f1(sum(pv.y))}</b></span>${pv.confidence?`<span>信心<b style="font-family:inherit;font-size:12px">${LANG=='en'?({低:'Low',中:'Med',高:'High'}[pv.confidence]||pv.confidence):pv.confidence}</b></span>`:''}</div>`:
     (!fin&&!live?`<div class="small mute" style="margin-top:6px">${bl?'AI 預測未出（將於本週第一場開賽前 1 小時發佈）· 統計基準 主'+Math.round(bl.p[0])+'% 平'+Math.round(bl.p[1])+'% 客'+Math.round(bl.p[2])+'%':'尚未預測'}</div>`:'');
+  const RCs=Object.entries((((D.learn||{}).stats||{}).recent)||{}).filter(([k,m])=>m.stable);
+  const BN={g:['FT goals','總進球'],g1:['1H goals','上半進球'],c1:['1H corners','上半角球'],c:['FT corners','全場角球'],f1:['1H fouls','上半犯規'],f:['FT fouls','全場犯規'],y1:['1H yellows','上半黃牌'],y:['FT yellows','全場黃牌']};
+  const bh=pv&&!fin&&RCs.length?`<div class="xs mute" style="margin-top:4px">📏 ${LANG=='en'?'Recent AI bias: ':'近期 AI 偏差：'}${RCs.map(([k,m])=>`${BN[k][LANG=='en'?0:1]} ${LANG=='en'?(m.bias>0?'over by ':'under by '):(m.bias>0?'多估 ':'少估 ')}${Math.abs(m.bias).toFixed(1)}`).join(' · ')}</div>`:'';
   const ver=pv?`<span class="tag ai">${pv.mode==="legacy"?"舊模型":"AI 第"+pv.n+"版"} · ${stamp(pv.ts)}</span>`:'';
   const htc=(D.halftime||{})[e.id];
   const htl=htc&&!fin?`<div class="small" style="margin-top:6px"><span class="tag ai">⏸️ ${LANG=='en'?'HT update':'半場更新'}</span> ${LANG=='en'?'H':'主'}${Math.round(htc.p[0])}/${LANG=='en'?'D':'平'}${Math.round(htc.p[1])}/${LANG=='en'?'A':'客'}${Math.round(htc.p[2])} · ${htc.score[0]}</div>`:'';
@@ -206,7 +209,7 @@ function matchCard(e,open){
   return `<div class="card match"><details ${open?'open':''}><summary class="pad">
    <div class="row small"><span class="mute">${md(e.start)} ${hm(e.start)} · 第${e.round}輪</span><span class="sp"></span>${st}${hit}</div>
    <div class="teams"><a class="t" href="#team/${e.home}" onclick="event.stopPropagation()">${badge(e.home)}<span>${nm(e.home)}</span></a>${mid}<a class="t r" href="#team/${e.away}" onclick="event.stopPropagation()"><span>${nm(e.away)}</span>${badge(e.away)}</a></div>
-   ${pb}${kv}${htl}${head}<div class="row" style="margin-top:8px">${ver}<span class="sp"></span><span class="xs mute">點擊看詳情 ▾</span></div>
+   ${pb}${kv}${bh}${htl}${head}<div class="row" style="margin-top:8px">${ver}<span class="sp"></span><span class="xs mute">點擊看詳情 ▾</span></div>
   </summary><div class="pad" style="padding-top:0">${body}</div></details></div>`;
 }
 function sec(icon,title,body,open,sub){if(!body)return '';return `<details class="sub" ${open?'open':''}><summary><span>${icon} <b>${title}</b>${sub?` <span class="xs mute">${sub}</span>`:''}</span><span class="chev">▾</span></summary><div class="subb">${body}</div></details>`}
@@ -387,7 +390,19 @@ function vAcc(){
     learnH+=`<div class="sec" style="font-size:13px">${en?'Win/draw/loss probability score (Brier, lower is better)':'勝平負機率評分（Brier，越低越好）'}</div>
     <div class="kv"><span>AI<b>${b(LS.brier_ai)}</b></span><span>${en?'Baseline':'統計基準'}<b>${b(LS.brier_base)}</b></span><span>${en?'Market odds':'市場賠率'}<b>${b(LS.brier_mkt)}</b></span><span>${en?'Season data only':'只用本季數據'}<b>${b(LS.brier_model)}</b></span><span>${en?'Closing odds':'收盤賠率'}<b>${b(LS.brier_close)}</b></span></div>`;
     const M=LS.metrics||{};const NM={g:['FT goals','總進球'],g1:['1H goals','上半進球'],c1:['1H corners','上半角球'],c:['FT corners','全場角球'],f1:['1H fouls','上半犯規'],f:['FT fouls','全場犯規'],y1:['1H yellows','上半黃牌'],y:['FT yellows','全場黃牌']};
-    if(Object.keys(M).length)learnH+=`<table class="cmp" style="margin-top:8px"><tr><th></th><th>${en?'Bias':'偏差'}</th><th>${en?'AI error':'AI 誤差'}</th><th>${en?'Baseline error':'基準誤差'}</th></tr>${Object.entries(M).map(([k,m])=>`<tr><td>${NM[k]?NM[k][en?0:1]:k}</td><td>${m.bias>0?'+':''}${m.bias}</td><td>±${m.mae}</td><td>${m.base_mae==null?'–':'±'+m.base_mae}</td></tr>`).join('')}</table><div class="xs mute" style="margin-top:4px">${en?'Bias: + means the AI over-predicts on average, − means under-predicts.':'偏差：正數代表 AI 平均高估，負數代表低估。'}</div>`;
+    const red='color:var(--loss)',grn='color:var(--win)';
+    const vd=(a,b)=>b==null?'–':a>b+0.05?`<b style="${red}">${en?'✗ worse':'✗ 越改越差'}</b>`:a<b-0.05?`<b style="${grn}">${en?'✓ helps':'✓ 有幫助'}</b>`:(en?'≈ same':'≈ 差不多');
+    learnH+=`<div class="sec" style="font-size:13px">${en?'Is the AI helping? (AI vs baseline, '+LS.n+' matches)':'AI 調整有沒有幫上忙？（AI 對比統計基準，'+LS.n+' 場）'}</div><table class="cmp"><tr><th></th><th>AI</th><th>${en?'Baseline':'基準'}</th><th>${en?'Season only':'只用本季'}</th><th></th></tr>`+
+      `<tr><td>${en?'Win/draw/loss (Brier)':'勝平負（Brier）'}</td><td>${b(LS.brier_ai)}</td><td>${b(LS.brier_base)}</td><td>${b(LS.brier_model)}</td><td>${vd(LS.brier_ai*10,LS.brier_base==null?null:LS.brier_base*10)}</td></tr>`+
+      Object.entries(M).map(([k,m])=>`<tr><td>${NM[k]?NM[k][en?0:1]:k}</td><td style="${m.base_mae!=null&&m.mae>m.base_mae+0.05?red:''}">±${m.mae}</td><td>${m.base_mae==null?'–':'±'+m.base_mae}</td><td>–</td><td>${vd(m.mae,m.base_mae)}</td></tr>`).join('')+
+      `</table><div class="xs mute" style="margin-top:4px">${en?'Numbers are average errors (lower is better). Red = the AI\'s adjustments made this item worse than the plain baseline. "Season only" = model using this season\'s data without any odds (win/draw/loss only). Small samples: treat as a trend, not proof.':'數字是平均誤差（越低越好）。紅色＝AI 調整後反而比統計基準差。「只用本季」＝完全不看賠率、只用本季數據的模型（只有勝平負）。樣本少，只當趨勢參考。'}</div>`;
+    const CV=LS.curve||{};
+    if(CV.rounds&&CV.rounds.length>1){const S=[['ai','AI','var(--acc)'],['base',en?'Baseline':'基準','#999'],['mkt',en?'Market':'市場','#d9a400'],['model',en?'Season only':'只用本季','#3aa66b']];
+      const all=S.flatMap(x=>CV[x[0]]).filter(x=>x!=null),mn=Math.min(...all),mx=Math.max(...all),W=320,H=90,n=CV.rounds.length,sx=i=>i*W/(n-1),sy=y=>H-(y-mn)*H/((mx-mn)||1);
+      learnH+=`<svg viewBox="0 -4 ${W} ${H+8}" style="width:100%;height:100px;margin-top:10px">${S.map(([k,_,c])=>`<polyline fill="none" stroke="${c}" stroke-width="2" points="${CV[k].map((y,i)=>y==null?'':sx(i)+','+sy(y)).filter(Boolean).join(' ')}"/>`).join('')}</svg><div class="xs mute">${en?'Cumulative win/draw/loss Brier by round (lower is better): ':'按輪次的累積勝平負 Brier（越低越好）：'}${S.map(([k,l,c])=>`<span style="color:${c}">■</span> ${l}`).join(' ')} · ${en?'rounds':'輪次'} ${CV.rounds[0]}–${CV.rounds[n-1]}</div>`;}
+    else learnH+=`<div class="xs mute" style="margin-top:6px">${en?'A round-by-round curve appears once two rounds have finished.':'踢完兩輪後，這裏會顯示按輪次的累積曲線。'}</div>`;
+    const RC=LS.recent||{};const rk=Object.entries(RC);
+    if(rk.length)learnH+=`<div class="sec" style="font-size:13px">${en?'Recent bias (last '+rk[0][1].rounds+' rounds)':'近期偏差（最近 '+rk[0][1].rounds+' 輪）'}</div><div class="kv">${rk.map(([k,m])=>`<span>${NM[k]?NM[k][en?0:1]:k}<b style="${m.stable?red:''}">${m.bias>0?'+':''}${m.bias}</b></span>`).join('')}</div><div class="xs mute" style="margin-top:4px">${en?'+ over-predicts, − under-predicts. Red = the same direction for 3 rounds in a row and at least 0.3 — shown as a hint on match cards and fed to the AI.':'正數＝多估，負數＝少估。紅色＝連續 3 輪同一方向且至少 0.3，會在比賽卡上提示，也會告訴 AI。'}</div>`;
     const C=LS.by_conf||{};if(Object.keys(C).length)learnH+=`<div class="kv" style="margin-top:8px">${Object.entries(C).map(([c,x])=>`<span>${en?{高:'High',中:'Med',低:'Low'}[c]+' conf.':'信心'+c}<b>${Math.round(x.hit*100)}%</b><span class="xs mute"> (${x.n})</span></span>`).join('')}</div>`;
   }
   learnH+='</div>';
@@ -422,6 +437,10 @@ function vSim(){
    <div class="tile"><div class="l">${en?'Worst drawdown':'最大回落'}</div><div class="big">${T.n?u(T.max_dd):'–'}</div></div>
    <div class="tile"><div class="l">${en?'Longest losing run':'最長連輸'}</div><div class="big">${T.n?T.worst_streak:'–'}</div></div>
    <div class="tile"><div class="l">${en?'Avg. CLV':'平均 CLV'}</div><div class="big" style="color:${T.clv>0?'var(--win)':T.clv<0?'var(--loss)':'inherit'}">${pct(T.clv)}</div></div></div><div class="xs mute" style="margin-top:6px">${en?'CLV (closing line value): how much better our odds were than the final odds just before kickoff. Consistently positive CLV is the most reliable sign of a real edge.':'CLV（收盤價值）：我們下注時的賠率比開賽前最後一刻的收盤賠率好多少。長期保持正數，是有真正優勢最可靠的指標。'}</div>`;
+  const CI=T.roi_ci,CO=P.coverage||{},MN=P.min_n||50;
+  if(T.n<MN)h+=`<div class="small" style="margin-top:8px;color:var(--warn)">⚠️ ${en?`Only ${T.n} bets so far — need roughly ${MN}+ before the result means anything.`:`目前只有 ${T.n} 注，至少約 ${MN} 注以上才有參考價值。`}${CI?(en?` Likely ROI range (luck band): ${pct(CI[0])} to ${pct(CI[1])}.`:` 回報率可能範圍（運氣波動區間）：${pct(CI[0])} 至 ${pct(CI[1])}。`):''}</div>`;
+  else if(CI)h+=`<div class="xs mute" style="margin-top:8px">${en?`ROI range (95% luck band): ${pct(CI[0])} to ${pct(CI[1])}`:`回報率可能範圍（95% 運氣波動區間）：${pct(CI[0])} 至 ${pct(CI[1])}`}</div>`;
+  if(CO.n){const r=CO.have/CO.n;h+=`<div class="xs" style="margin-top:4px;${r<0.8?'color:var(--loss)':''}">${en?`Closing-odds coverage: ${CO.have}/${CO.n} finished matches (recorded since ${md(CO.since)})`:`收盤賠率覆蓋率：${CO.have}/${CO.n} 場（${md(CO.since)} 起記錄）`}${r<0.8?(en?' — below 80%, the last pre-kickoff odds scrape is being missed.':' — 低於 80%，開賽前最後一次抓賠率常常漏掉。'):''} · ${en?'CLV available for':'有 CLV 的注數'} ${T.n_clv||0}/${T.n}</div>`;}
   const c=P.curve||[];
   if(c.length>1){const mn=Math.min(0,...c),mx=Math.max(0,...c),W=320,H=90,sx=i=>i*W/(c.length-1),sy=y=>H-(y-mn)*H/((mx-mn)||1);
     h+=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100px;margin-top:10px"><line x1="0" x2="${W}" y1="${sy(0)}" y2="${sy(0)}" stroke="var(--line)"/><polyline fill="none" stroke="var(--acc)" stroke-width="2" points="${c.map((y,i)=>sx(i)+','+sy(y)).join(' ')}"/></svg><div class="xs mute">${en?'Cumulative profit (units)':'累積盈虧（注）'}</div>`;}
