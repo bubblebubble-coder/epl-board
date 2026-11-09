@@ -423,9 +423,33 @@ function vAcc(){
 }
 
 /* ---------- paper trading ---------- */
-let SIMT='first';
+let SIMT='first',SF={from:'',to:'',teams:[],open:false};
+const sfT=v=>v?new Date(v).getTime()/1000:null;
+const sfOk=b=>{const f=sfT(SF.from),t=sfT(SF.to);if(f!=null&&b.start<f)return false;if(t!=null&&b.start>t)return false;if(SF.teams.length&&!SF.teams.includes(b.home)&&!SF.teams.includes(b.away))return false;return true};
+const sfOn=()=>!!(SF.from||SF.to||SF.teams.length);
+const sfLoc=ts=>{const d=new Date(ts*1000),z=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())+'T'+z(d.getHours())+':'+z(d.getMinutes())};
+function sfDay(v){if(!v){SF.from=SF.to='';}else{const d=new Date(v+'T06:00');SF.from=sfLoc(d/1000);SF.to=sfLoc(d/1000+86400-60);}vSim()}
+function sfTeam(c,on){SF.teams=SF.teams.filter(x=>x!=c);if(on)SF.teams.push(c);vSim()}
+function sfAgg(bets){const n=bets.length,T={n};if(!n)return {total:T,by_market:{},by_conf:{},curve:[]};
+  let pnl=0,w=0,pk=0,dd=0,st=0,ws=0,cl=[],ld=[],curve=[];const BM={},BC={};
+  for(const b of bets){pnl+=b.pnl;curve.push(+pnl.toFixed(2));if(b.win)w++;pk=Math.max(pk,pnl);dd=Math.min(dd,pnl-pk);st=b.win===false?st+1:0;ws=Math.max(ws,st);if(b.clv!=null)cl.push(b.clv);if(b.lead!=null)ld.push(b.lead);
+    for(const[o,k]of[[BM,b.market],[BC,b.conf]]){if(k==null)continue;const x=o[k]=o[k]||{n:0,wins:0,pnl:0};x.n++;x.wins+=b.win?1:0;x.pnl+=b.pnl}}
+  for(const o of[BM,BC])for(const k in o){o[k].roi=o[k].pnl/o[k].n;o[k].pnl=+o[k].pnl.toFixed(2)}
+  const m=pnl/n,sd=Math.sqrt(bets.reduce((a,b)=>a+(b.pnl-m)**2,0)/Math.max(1,n-1));
+  Object.assign(T,{pnl:+pnl.toFixed(2),roi:m,wins:w,max_dd:+dd.toFixed(2),worst_streak:ws,clv:cl.length?cl.reduce((a,b)=>a+b,0)/cl.length:null,n_clv:cl.length,avg_lead:ld.length?Math.round(ld.reduce((a,b)=>a+b,0)/ld.length):null,roi_ci:n>1?[m-1.96*sd/Math.sqrt(n),m+1.96*sd/Math.sqrt(n)]:null});
+  return {total:T,by_market:BM,by_conf:BC,curve}}
+function sfBox(P0,en){const all=[...(P0.bets||[]),...Object.values(P0.tracks||{}).flatMap(t=>t.bets||[]),...(P0.open||[]),...(P0.open_first||[]),...(P0.live||[])];
+  const tm=[...new Set(all.flatMap(b=>[b.home,b.away]))].sort((a,b)=>String(nm(a)).localeCompare(String(nm(b))));
+  const days=[...new Set(all.map(b=>sfLoc(b.start-6*3600).slice(0,10)))].sort().reverse();
+  const curDay=days.find(d=>SF.from==d+'T06:00'&&SF.to==sfLoc(new Date(d+'T06:00')/1000+86400-60))||'';
+  return `<div class="card pad small"><div onclick="SF.open=!SF.open;vSim()" style="cursor:pointer"><b>🔎 ${en?'Filter':'篩選'}</b>${sfOn()?` <span class="tag ai">${en?'on':'已啟用'}</span> <a style="color:var(--acc)" href="javascript:void 0" onclick="event.stopPropagation();SF.from=SF.to='';SF.teams=[];vSim()">${en?'clear':'清除'}</a>`:''} <span class="mute">${SF.open?'▲':'▼'}</span></div>${SF.open?`
+  <div style="margin-top:8px">${en?'Match day (06:00 to 05:59 next day, so late kick-offs count as the same day)':'比賽日（早上 06:00 至翌日 05:59，凌晨開賽算同一天）'}<br><select onchange="sfDay(this.value)"><option value="">${en?'— any —':'— 不限 —'}</option>${days.map(d=>`<option value="${d}" ${d==curDay?'selected':''}>${d} ${new Date(d+'T12:00').toLocaleDateString(en?'en-GB':'zh-TW',{weekday:'short'})}</option>`).join('')}</select></div>
+  <div style="margin-top:8px">${en?'Or custom range (kick-off time)':'或自訂範圍（開賽時間）'}<br>${en?'From':'由'} <input type="datetime-local" value="${SF.from}" onchange="SF.from=this.value;vSim()"> ${en?'to':'至'} <input type="datetime-local" value="${SF.to}" onchange="SF.to=this.value;vSim()"></div>
+  <div style="margin-top:8px">${en?'Teams (any match involving a ticked team)':'球隊（包含任一已勾選球隊的比賽）'}<div style="display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px">${tm.map(c=>`<label><input type="checkbox" ${SF.teams.includes(c)?'checked':''} onchange="sfTeam('${c}',this.checked)"> ${nm(c)}</label>`).join('')}</div></div>`:''}</div>`}
 function vSim(){
-  const P0=D.paper||{},en=LANG=='en',TR=SIMT,P=Object.assign({},P0,(P0.tracks||{})[TR]||(TR=='final'?{}:{total:{n:0},bets:[],curve:[]})),T=P.total||{n:0};
+  const P0=D.paper||{},en=LANG=='en',TR=SIMT;let P=Object.assign({},P0,(P0.tracks||{})[TR]||(TR=='final'?{}:{total:{n:0},bets:[],curve:[]}));
+  if(sfOn()){const fb=(P.bets||[]).filter(sfOk);P=Object.assign({},P,sfAgg(fb),{bets:fb,coverage:null});}
+  const T=P.total||{n:0};
   const MK={'goals':['Goals line','進球大小'],'1X2':['Win/draw/loss','勝平負'],'OU2.5':['Over/under 2.5','大小2.5球'],'BTTS':['Both teams score','雙方進球'],corners:['Corners line','角球大小'],cards:['Cards line','黃牌大小']};
   const pct=x=>x==null?'–':(x>0?'+':'')+Math.round(x*100)+'%';
   const u=x=>(x>0?'+':'')+(+x).toFixed(2);
@@ -433,7 +457,7 @@ function vSim(){
   const TX={first:['Each pick is locked at the odds of the first AI prediction where it qualified (on average '+(T.avg_lead??'–')+' h before kickoff) and never changed afterwards. This is the fair test of CLV: did the odds later move our way?','每個選項在 AI 第一次出現這個判斷時就鎖定當時的賠率（平均開賽前 '+(T.avg_lead??'–')+' 小時），之後不再更改。這是公平的 CLV 測試：之後賠率有沒有往我們的方向移動？'],
     final:['Uses the last AI version before kickoff (on average '+(T.avg_lead??'–')+' h before). Late versions see confirmed line-ups, but their odds are already close to the closing odds, so CLV here says little.','用開賽前最後一版 AI 預測（平均開賽前 '+(T.avg_lead??'–')+' 小時）。臨場版看得到正式首發，但賠率已接近收盤賠率，所以這裡的 CLV 參考價值不大。'],
     ht:['After the half-time review, the AI\'s updated full-time call is compared with live odds at half-time; a bet needs an edge of at least '+Math.round((P0.edge_ht||0.08)*100)+'%. No CLV here: live odds have no closing line, so judge by results over many games.','半場檢討後，用 AI 更新的全場預測對比半場時的即時賠率，優勢至少 '+Math.round((P0.edge_ht||0.08)*100)+'% 才下注。這裡不計 CLV：即時賠率沒有收盤價，只能看長期結果。']};
-  let h=`<div class="chips" style="margin-bottom:8px">${Object.keys(TN).map(k=>`<a class="chip ${k==TR?'on':''}" href="javascript:void 0" onclick="SIMT='${k}';vSim()">${TN[k][en?0:1]}</a>`).join(' ')}</div><div class="card pad small">${TX[TR][en?0:1]}</div>`;
+  let h=`<div class="chips" style="margin-bottom:8px">${Object.keys(TN).map(k=>`<a class="chip ${k==TR?'on':''}" href="javascript:void 0" onclick="SIMT='${k}';vSim()">${TN[k][en?0:1]}</a>`).join(' ')}</div><div class="card pad small">${TX[TR][en?0:1]}</div>`+sfBox(P0,en);
   h+=`<div class="card pad small" style="border-color:var(--warn)">${en?'⚠️ Simulation only — no real money. A virtual 1-unit bet is placed whenever the AI\'s probability beats the bookmaker\'s odds by at least '+Math.round((P.edge||0.05)*100)+'%. Small samples swing wildly; this is a test of whether the AI has any edge, not advice.':'⚠️ 只是模擬，不涉及真錢。每當 AI 的機率比莊家賠率反映的高出 '+Math.round((P.edge||0.05)*100)+'% 以上，就虛擬下注 1 注。樣本少時結果波動很大；這只是測試 AI 有沒有優勢，不是投注建議。'}</div>`;
   h+=`<div class="card pad"><div class="tiles">
    <div class="tile"><div class="l">${en?'Bets':'注數'}</div><div class="big">${T.n}</div></div>
@@ -453,9 +477,9 @@ function vSim(){
   h+='</div>';
   const tbl=(o,lab)=>{const e=Object.entries(o||{});if(!e.length)return '';return `<div class="sec">${lab}</div><div class="card"><table class="tbl"><tr><th style="text-align:left;padding-left:10px">${en?'Type':'類別'}</th><th>${en?'Bets':'注'}</th><th>${en?'Won':'贏'}</th><th>${en?'Profit':'盈虧'}</th><th>ROI</th></tr>${e.map(([k,x])=>`<tr><td class="tn" style="padding-left:10px">${k in MK?MK[k][en?0:1]:(en?{高:'High',中:'Med',低:'Low'}[k]+' conf.':'信心'+k)}</td><td>${x.n}</td><td>${x.wins}</td><td>${u(x.pnl)}</td><td>${pct(x.roi)}</td></tr>`).join('')}</table></div>`};
   h+=tbl(P.by_market,en?'By market':'按盤口')+tbl(P.by_conf,en?'By AI confidence':'按 AI 信心');
-  const O=TR=='first'?(P0.open_first||[]):TR=='final'?(P0.open||[]):null;
+  const O=(TR=='first'?(P0.open_first||[]):TR=='final'?(P0.open||[]):null)?.filter(sfOk)||null;
   if(O)h+=`<div class="sec">${en?'Open virtual bets (upcoming)':'未開賽的模擬注'}</div><div class="card">`+(O.length?O.map(b=>`<div class="gl" style="grid-template-columns:44px 1fr auto"><span class="small mute">${md(b.start)}</span><span>${nm(b.home)} v ${nm(b.away)}<div class="xs"><b>${en?b.en:b.zh}</b> @ ${b.odds} · AI ${Math.round(b.p*100)}% · ${en?'edge':'優勢'} ${pct(b.edge)}</div></span><span class="tag ai">${en?'open':'待結算'}</span></div>`).join(''):`<div class="empty small">${en?'None — the AI does not currently disagree enough with the odds on any upcoming match.':'暫時沒有：AI 目前對未開賽的比賽，沒有跟賠率差得夠多的判斷。'}</div>`)+'</div>';
-  const LV=(P0.live||[]).filter(b=>(b.track||'final')==TR);
+  const LV=(P0.live||[]).filter(b=>(b.track||'final')==TR&&sfOk(b));
   if(LV.length)h+=`<div class="sec">${en?'Virtual bets in play':'比賽中的模擬注'}</div><div class="card">`+LV.map(b=>`<div class="gl" style="grid-template-columns:44px 1fr auto"><span class="small mute">${hm(b.start)}</span><span>${nm(b.home)} <b class="num">${b.hs??'–'}-${b.as_??'–'}</b> ${nm(b.away)}<div class="xs"><b>${en?b.en:b.zh}</b> @ ${b.odds} · AI ${Math.round(b.p*100)}% · ${en?'edge':'優勢'} ${pct(b.edge)}</div></span><span class="tag ai">${b.status=='finished'?(en?'FT · settling':'完場・結算中'):(b.desc&&/half/i.test(b.desc)&&!/1st|2nd/i.test(b.desc)?(en?'HT':'半場'):(en?'LIVE':'進行中'))}</span></div>`).join('')+'</div>';
   const B=[...(P.bets||[])].reverse();
   if(B.length)h+=`<div class="sec">${en?'Settled bets':'已結算'}</div><div class="card">`+B.map(b=>`<div class="gl" style="grid-template-columns:44px 1fr auto auto"><span class="small mute">${md(b.start)}</span><span>${nm(b.home)} v ${nm(b.away)}<div class="xs"><b>${en?b.en:b.zh}</b> @ ${b.odds} · AI ${Math.round(b.p*100)}%${b.clv!=null?' · CLV '+pct(b.clv):''}${b.lead!=null?(en?' · '+b.lead+'h before':' · 賽前 '+b.lead+' 小時'):''}</div></span><span class="num">${u(b.pnl)}</span><span class="res ${b.win==null?'D':b.win?'W':'L'}">${b.win==null?'–':b.win?'✓':'✗'}</span></div>`).join('')+'</div>';
