@@ -104,7 +104,7 @@ details.more>summary{padding:10px 0;font-size:15px;border-top:1px solid var(--li
 </nav>
 <script>
 let LANG='en';try{localStorage.removeItem('lang')}catch(e){}
-const LGS={epl:{file:'data.json',zh:'英超',en:'Premier League',flag:'🏴',short:'EPL'},laliga:{file:'data-laliga.json',zh:'西甲',en:'LaLiga',flag:'🇪🇸',short:'LaLiga'}};
+const LGS={epl:{file:'data.json',zh:'英超',en:'Premier League',flag:'🏴',short:'EPL'},laliga:{file:'data-laliga.json',zh:'西甲',en:'LaLiga',flag:'🇪🇸',short:'LaLiga'},seriea:{file:'data-seriea.json',zh:'意甲',en:'Serie A',flag:'🇮🇹',short:'Serie A'}};
 const LGK=LGS[new URLSearchParams(location.search).get('lg')]?new URLSearchParams(location.search).get('lg'):'epl',LGI=LGS[LGK];
 const EN_TEAM={ARS:'Arsenal',MCI:'Man City',CHE:'Chelsea',LIV:'Liverpool',MUN:'Man United',TOT:'Tottenham',AVL:'Aston Villa',BHA:'Brighton',BOU:'Bournemouth',BRE:'Brentford',COC:'Coventry',CRY:'Crystal Palace',EVE:'Everton',FUL:'Fulham',HUL:'Hull City',IPS:'Ipswich',LEE:'Leeds',NEW:'Newcastle',NFO:"Nott'm Forest",SUN:'Sunderland'};
 const F=(o,k)=>{const e=o[k+'_en'];return LANG=='en'&&e&&(Array.isArray(e)?e.length:1)?e:o[k]};
@@ -148,8 +148,8 @@ function updHeader(){$('#upd').textContent=(LANG=='en'?'Updated: ':'數據更新
   document.querySelectorAll('nav.tabs a').forEach(a=>{a.lastChild.nodeValue=LANG=='en'?{week:'Week',table:'Table',team:'Teams',rank:'Rankings',acc:'Accuracy',sim:'Sim'}[a.dataset.t]:{week:'本週',table:'積分榜',team:'球隊',rank:'排行',acc:'準確度',sim:'模擬'}[a.dataset.t]});}
 
 const COL={ARS:'#db0007',MCI:'#6cabdd',CHE:'#034694',LIV:'#c8102e',MUN:'#da291c',TOT:'#132257',AVL:'#670e36',BHA:'#0057b8',BOU:'#b50e12',BRE:'#e30613',COC:'#59cbe8',CRY:'#1b458f',EVE:'#003399',FUL:'#222',HUL:'#f5a12d',IPS:'#3a64a3',LEE:'#ffcd00',NEW:'#241f20',NFO:'#dd0000',SUN:'#eb172b'};
-Object.assign(COL,LGK=='laliga'?{BAR:'#a50044',RMA:'#febe10',ATM:'#cb3524',BET:'#0bb363',RSO:'#0067b1',SEV:'#d71920',ATH:'#ee2523',VIL:'#ffe667',CEL:'#8ac3ee',ALA:'#0761af',RAY:'#e53027',GET:'#005999',COR:'#1a5bab',ESP:'#007fc8',OSA:'#d91a21',SAN:'#00843d',ELC:'#05642c',LEV:'#b4053f',VAL:'#ee3524',MCF:'#3d7ac1'}:{});
-const DARKTXT=LGK=='laliga'?{RMA:1,VIL:1,CEL:1}:{LEE:1,HUL:1,COC:1,MCI:1};
+Object.assign(COL,LGK=='laliga'?{BAR:'#a50044',RMA:'#febe10',ATM:'#cb3524',BET:'#0bb363',RSO:'#0067b1',SEV:'#d71920',ATH:'#ee2523',VIL:'#ffe667',CEL:'#8ac3ee',ALA:'#0761af',RAY:'#e53027',GET:'#005999',COR:'#1a5bab',ESP:'#007fc8',OSA:'#d91a21',SAN:'#00843d',ELC:'#05642c',LEV:'#b4053f',VAL:'#ee3524',MCF:'#3d7ac1'}:LGK=='seriea'?{INT:'#1a57cc',ACM:'#cc0000',JUV:'#1a1a1a',NAP:'#008cea',ASR:'#990000',LAZ:'#64b6e1',ATA:'#1e3a8a',FIO:'#542baa',BOL:'#003366',TOR:'#6d1b1d',COM:'#09436b',GEN:'#8b1a1a',CAG:'#a31d2b',LEC:'#f6ea00',PAR:'#ffd200',SAS:'#006600',MON:'#d71742',VEN:'#ed7d01',UDI:'#3a3a3a',FRO:'#ffe600'}:{});
+const DARKTXT=LGK=='laliga'?{RMA:1,VIL:1,CEL:1}:LGK=='seriea'?{LAZ:1,LEC:1,PAR:1,FRO:1}:{LEE:1,HUL:1,COC:1,MCI:1};
 const MODE={late:'賽前突發',legacy:'舊版模型',round:'本週首次',check:'12小時檢查',pre60:'賽前1小時',pre30:'賽前30分鐘',manual:'手動更新'};
 let D,N,app=document.getElementById('app'),wk=null,rkKey='g',tmSel=null;
 const $=s=>document.querySelector(s);
