@@ -64,7 +64,7 @@ ul.reasons{margin:6px 0;padding-left:18px}ul.reasons li{margin:3px 0}
 .tbl th{font-weight:500;color:var(--mute);font-size:11px;padding:6px 3px;text-align:center;border-bottom:1px solid var(--line)}
 .tbl td{padding:7px 3px;text-align:center;border-bottom:1px solid var(--line);font-family:"Saira Condensed";font-size:15px}
 .tbl td.tn{text-align:left;font-family:"Noto Sans TC";font-size:13px;font-weight:500}
-.tbl tr.zone-cl td:first-child{box-shadow:inset 3px 0 var(--h)}.tbl tr.zone-rel td:first-child{box-shadow:inset 3px 0 var(--loss)}
+.tbl tr.zone-cl td:first-child{box-shadow:inset 3px 0 var(--h)}.tbl tr.zone-ko td:first-child{box-shadow:inset 3px 0 var(--win)}.tbl tr.zone-po td:first-child{box-shadow:inset 3px 0 #f59e0b}.tbl tr.zone-rel td:first-child{box-shadow:inset 3px 0 var(--loss)}
 .dots{display:inline-flex;gap:2px}.dots i{width:7px;height:7px;border-radius:50%;display:inline-block}
 .W{background:var(--win)}.D{background:var(--draw)}.L{background:var(--loss)}
 .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -104,7 +104,9 @@ details.more>summary{padding:10px 0;font-size:15px;border-top:1px solid var(--li
 </nav>
 <script>
 let LANG='en';try{localStorage.removeItem('lang')}catch(e){}
-const LGS={epl:{file:'data.json',zh:'英超',en:'Premier League',flag:'🏴',short:'EPL'},laliga:{file:'data-laliga.json',zh:'西甲',en:'LaLiga',flag:'🇪🇸',short:'LaLiga'},seriea:{file:'data-seriea.json',zh:'意甲',en:'Serie A',flag:'🇮🇹',short:'Serie A'}};
+const LGS={epl:{file:'data.json',zh:'英超',en:'Premier League',flag:'🏴',short:'EPL'},laliga:{file:'data-laliga.json',zh:'西甲',en:'LaLiga',flag:'🇪🇸',short:'LaLiga'},seriea:{file:'data-seriea.json',zh:'意甲',en:'Serie A',flag:'🇮🇹',short:'Serie A'},ucl:{file:'data-ucl.json',zh:'歐冠',en:'Champions League',flag:'⭐',short:'UCL',cup:1}};
+const KOZ=['淘汰附加賽','16強','8強','4強','決賽'];
+const RN=r=>LGI.cup&&r>8?(KOZ[r-9]||'淘汰賽'):'第'+r+'輪';
 const LGK=LGS[new URLSearchParams(location.search).get('lg')]?new URLSearchParams(location.search).get('lg'):'epl',LGI=LGS[LGK];
 const EN_TEAM={ARS:'Arsenal',MCI:'Man City',CHE:'Chelsea',LIV:'Liverpool',MUN:'Man United',TOT:'Tottenham',AVL:'Aston Villa',BHA:'Brighton',BOU:'Bournemouth',BRE:'Brentford',COC:'Coventry',CRY:'Crystal Palace',EVE:'Everton',FUL:'Fulham',HUL:'Hull City',IPS:'Ipswich',LEE:'Leeds',NEW:'Newcastle',NFO:"Nott'm Forest",SUN:'Sunderland'};
 const F=(o,k)=>{const e=o[k+'_en'];return LANG=='en'&&e&&(Array.isArray(e)?e.length:1)?e:o[k]};
@@ -114,7 +116,8 @@ const RX=[[/第\s*(\d+)\s*輪/g,'Round $1'],[/第\s*(\d+)\s*位/g,'#$1'],[/AI �
  [/主(\d+)\/[和平](\d+)\/客(\d+)/g,'H$1/D$2/A$3'],[/主(\d+)% [和平](\d+)% 客(\d+)%/g,'H$1% D$2% A$3%'],[/角([\d.]+)→/g,'Corners $1→'],
  [/半場形勢：主領先 (\d+)% · 平局 (\d+)% · 客領先 (\d+)%/g,'Half-time: home ahead $1% · level $2% · away ahead $3%'],[/^主 vs /,'H vs '],[/^客 vs /,'A vs '],
  [/每場平均 · /g,'Per match · '],[/半場 (\d+)-(\d+)/g,'HT $1-$2'],[/預測 (\d+-\d+)/g,'Pred. $1']];
-const PH=[['所有預測只供參考，單場波動很大，不構成投注建議。時間為馬來西亞時間。AI 預測於本週第一場開賽前 1 小時發佈，之後每 12 小時及每場賽前 1 小時、30 分鐘檢查，有新資訊才修正；賽前 30 分鐘後如賠率大幅變動或首發有變，會再檢查一次。',"Predictions are for reference only, not betting advice. Times are Malaysia time (UTC+8). AI predictions are published 1 hour before the round's first match, then rechecked every 12 hours and 60 and 30 minutes before each kickoff; they change only when new information appears. After T-30, a big odds swing or line-up change triggers one more check."],
+const PH=[[' 次回合',' 2nd leg'],[' 首回合',' 1st leg'],['淘汰附加賽','KO play-off'],['16強','Round of 16'],['8強','Quarter-finals'],['4強','Semi-finals'],['決賽','Final'],['聯賽階段','League phase '],['爭前八（直接進16強）','Top-8 race (direct to last 16)'],['爭附加賽席位','Play-off spot race'],['出局邊緣','Elimination danger'],['基本出局','All but out'],['已穩進附加賽','Play-off spot secure'],
+ ['綠線：前八名直接進16強 · 黃線：9-24名打淘汰附加賽 · 紅線：25名起出局。點球隊看詳情。','Green: top 8 go straight to the last 16 · Amber: 9th-24th play the knockout play-off · Red: 25th and below are out. Tap a team for details.'],['所有預測只供參考，單場波動很大，不構成投注建議。時間為馬來西亞時間。AI 預測於本週第一場開賽前 1 小時發佈，之後每 12 小時及每場賽前 1 小時、30 分鐘檢查，有新資訊才修正；賽前 30 分鐘後如賠率大幅變動或首發有變，會再檢查一次。',"Predictions are for reference only, not betting advice. Times are Malaysia time (UTC+8). AI predictions are published 1 hour before the round's first match, then rechecked every 12 hours and 60 and 30 minutes before each kickoff; they change only when new information appears. After T-30, a big odds swing or line-up change triggers one more check."],
  ['還沒有完場的 AI 預測。第一批預測完場後，這裏會統計命中率。','No finished matches with AI predictions yet. Hit rates will appear here once the first predicted matches finish.'],
  ['藍線：前四（歐冠資格）· 紅線：降級區。點球隊看詳情。','Blue: top 4 (Champions League) · Red: relegation zone. Tap a team for details.'],
  ['AI 預測未出（將於本週第一場開賽前 1 小時發佈）· 統計基準 ',"AI prediction pending (published 1h before the round's first match) · Baseline "],
@@ -148,8 +151,8 @@ function updHeader(){$('#upd').textContent=(LANG=='en'?'Updated: ':'數據更新
   document.querySelectorAll('nav.tabs a').forEach(a=>{a.lastChild.nodeValue=LANG=='en'?{week:'Week',table:'Table',team:'Teams',rank:'Rankings',acc:'Accuracy',sim:'Sim'}[a.dataset.t]:{week:'本週',table:'積分榜',team:'球隊',rank:'排行',acc:'準確度',sim:'模擬'}[a.dataset.t]});}
 
 const COL={ARS:'#db0007',MCI:'#6cabdd',CHE:'#034694',LIV:'#c8102e',MUN:'#da291c',TOT:'#132257',AVL:'#670e36',BHA:'#0057b8',BOU:'#b50e12',BRE:'#e30613',COC:'#59cbe8',CRY:'#1b458f',EVE:'#003399',FUL:'#222',HUL:'#f5a12d',IPS:'#3a64a3',LEE:'#ffcd00',NEW:'#241f20',NFO:'#dd0000',SUN:'#eb172b'};
-Object.assign(COL,LGK=='laliga'?{BAR:'#a50044',RMA:'#febe10',ATM:'#cb3524',BET:'#0bb363',RSO:'#0067b1',SEV:'#d71920',ATH:'#ee2523',VIL:'#ffe667',CEL:'#8ac3ee',ALA:'#0761af',RAY:'#e53027',GET:'#005999',COR:'#1a5bab',ESP:'#007fc8',OSA:'#d91a21',SAN:'#00843d',ELC:'#05642c',LEV:'#b4053f',VAL:'#ee3524',MCF:'#3d7ac1'}:LGK=='seriea'?{INT:'#1a57cc',ACM:'#cc0000',JUV:'#1a1a1a',NAP:'#008cea',ASR:'#990000',LAZ:'#64b6e1',ATA:'#1e3a8a',FIO:'#542baa',BOL:'#003366',TOR:'#6d1b1d',COM:'#09436b',GEN:'#8b1a1a',CAG:'#a31d2b',LEC:'#f6ea00',PAR:'#ffd200',SAS:'#006600',MON:'#d71742',VEN:'#ed7d01',UDI:'#3a3a3a',FRO:'#ffe600'}:{});
-const DARKTXT=LGK=='laliga'?{RMA:1,VIL:1,CEL:1}:LGK=='seriea'?{LAZ:1,LEC:1,PAR:1,FRO:1}:{LEE:1,HUL:1,COC:1,MCI:1};
+Object.assign(COL,LGK=='laliga'?{BAR:'#a50044',RMA:'#febe10',ATM:'#cb3524',BET:'#0bb363',RSO:'#0067b1',SEV:'#d71920',ATH:'#ee2523',VIL:'#ffe667',CEL:'#8ac3ee',ALA:'#0761af',RAY:'#e53027',GET:'#005999',COR:'#1a5bab',ESP:'#007fc8',OSA:'#d91a21',SAN:'#00843d',ELC:'#05642c',LEV:'#b4053f',VAL:'#ee3524',MCF:'#3d7ac1'}:LGK=='ucl'?{ARS:'#db0007',MCI:'#6cabdd',LIV:'#c8102e',MUN:'#da291c',AVL:'#670e36',RMA:'#febe10',BAR:'#a50044',ATM:'#cb3524',BET:'#0bb363',VIL:'#ffe667',INT:'#1a57cc',NAP:'#008cea',ASR:'#990000',COM:'#09436b',FCB:'#dc052d',BVB:'#fde100',RBL:'#dd0741',VFB:'#e32219',PSG:'#004170',LIL:'#e01e13',RCL:'#fff200',FCP:'#00428c',SCP:'#008057',PSV:'#ed1c24',FEY:'#d6001c',BRU:'#0066b3',GAL:'#a90432',FEN:'#163962',SHA:'#f58220',AEK:'#ffd500',BG:'#ffd200',SLA:'#d6001c',SLO:'#2a5ca8',LASK:'#111',VIK:'#003c7e',SBH:'#e60012'}:LGK=='seriea'?{INT:'#1a57cc',ACM:'#cc0000',JUV:'#1a1a1a',NAP:'#008cea',ASR:'#990000',LAZ:'#64b6e1',ATA:'#1e3a8a',FIO:'#542baa',BOL:'#003366',TOR:'#6d1b1d',COM:'#09436b',GEN:'#8b1a1a',CAG:'#a31d2b',LEC:'#f6ea00',PAR:'#ffd200',SAS:'#006600',MON:'#d71742',VEN:'#ed7d01',UDI:'#3a3a3a',FRO:'#ffe600'}:{});
+const DARKTXT=LGK=='ucl'?{RMA:1,VIL:1,BVB:1,RCL:1,AEK:1,BG:1,MCI:1}:LGK=='laliga'?{RMA:1,VIL:1,CEL:1}:LGK=='ucl'?{ARS:'#db0007',MCI:'#6cabdd',LIV:'#c8102e',MUN:'#da291c',AVL:'#670e36',RMA:'#febe10',BAR:'#a50044',ATM:'#cb3524',BET:'#0bb363',VIL:'#ffe667',INT:'#1a57cc',NAP:'#008cea',ASR:'#990000',COM:'#09436b',FCB:'#dc052d',BVB:'#fde100',RBL:'#dd0741',VFB:'#e32219',PSG:'#004170',LIL:'#e01e13',RCL:'#fff200',FCP:'#00428c',SCP:'#008057',PSV:'#ed1c24',FEY:'#d6001c',BRU:'#0066b3',GAL:'#a90432',FEN:'#163962',SHA:'#f58220',AEK:'#ffd500',BG:'#ffd200',SLA:'#d6001c',SLO:'#2a5ca8',LASK:'#111',VIK:'#003c7e',SBH:'#e60012'}:LGK=='seriea'?{LAZ:1,LEC:1,PAR:1,FRO:1}:{LEE:1,HUL:1,COC:1,MCI:1};
 const MODE={late:'賽前突發',legacy:'舊版模型',round:'本週首次',check:'12小時檢查',pre60:'賽前1小時',pre30:'賽前30分鐘',manual:'手動更新'};
 let D,N,app=document.getElementById('app'),wk=null,rkKey='g',tmSel=null;
 const $=s=>document.querySelector(s);
@@ -207,7 +210,7 @@ function matchCard(e,open){
   const head=pv&&pv.headline?`<div class="headline">${esc(F(pv,'headline'))}</div>`:'';
   const body=detail(e,g,pv,P,rv,pre,bl);
   return `<div class="card match"><details ${open?'open':''}><summary class="pad">
-   <div class="row small"><span class="mute">${md(e.start)} ${hm(e.start)} · 第${e.round}輪</span><span class="sp"></span>${st}${hit}</div>
+   <div class="row small"><span class="mute">${md(e.start)} ${hm(e.start)} · ${RN(e.round)}${e.stage&&e.prevLeg?' 次回合':e.stage&&e.round>8&&e.stage!='Final'?' 首回合':''}</span><span class="sp"></span>${st}${hit}</div>
    <div class="teams"><a class="t" href="#team/${e.home}" onclick="event.stopPropagation()">${badge(e.home)}<span>${nm(e.home)}</span></a>${mid}<a class="t r" href="#team/${e.away}" onclick="event.stopPropagation()"><span>${nm(e.away)}</span>${badge(e.away)}</a></div>
    ${pb}${kv}${bh}${htl}${head}<div class="row" style="margin-top:8px">${ver}<span class="sp"></span><span class="xs mute">點擊看詳情 ▾</span></div>
   </summary><div class="pad" style="padding-top:0">${body}</div></details></div>`;
@@ -270,7 +273,7 @@ function ctxHtml(e){
     const res=r=>{const hw=r[4]>r[5],aw=r[5]>r[4];const pov=e.home;const w=(r[2]==pov&&hw)||(r[3]==pov&&aw),l=(r[2]==pov&&aw)||(r[3]==pov&&hw);return w?'W':l?'L':'D'};
     o+=`<div class="small">${en?'Results from '+nm(e.home)+"'s view":'以'+nm(e.home)+'角度'}：<span class="dots">${H.last10.map(r=>`<i class="${res(r)}" style="width:10px;height:10px"></i>`).join('')}</span></div>`;
     o+=`<table class="cmp" style="margin-top:6px">${H.last10.map(r=>`<tr><td class="xs">${dt(r[0])}<div class="xs mute">${comp(r[1])}</div></td><td style="text-align:right;font-family:inherit;font-size:13px">${nm(r[2])}</td><td><b>${r[4]}-${r[5]}</b></td><td style="text-align:left;font-family:inherit;font-size:13px">${nm(r[3])}</td></tr>`).join('')}</table>`;
-    o+=`<div class="small" style="margin-top:6px">🏟️ ${en?`${nm(e.away)}'s last league win away at ${nm(e.home)}: `:`${nm(e.away)}上一次在聯賽作客贏${nm(e.home)}：`}<b>${H.last_away_win?yr(H.last_away_win):(en?'none on record':'紀錄內從未')}</b> <span class="xs mute">(${en?'league meetings at this ground on record':'紀錄內此場地聯賽交手'} ${H.league_here_n}${en?'':' 次'}${H.oldest?(en?', since ':'，最早 ')+yr(H.oldest):''})</span></div>`;
+    o+=`<div class="small" style="margin-top:6px">🏟️ ${en?`${nm(e.away)}'s last ${LGI.cup?'Champions League':'league'} win away at ${nm(e.home)}: `:`${nm(e.away)}上一次在${LGI.cup?'歐冠':'聯賽'}作客贏${nm(e.home)}：`}<b>${H.last_away_win?yr(H.last_away_win):(en?'none on record':'紀錄內從未')}</b> <span class="xs mute">(${en?(LGI.cup?'UCL':'league')+' meetings at this ground on record':'紀錄內此場地'+(LGI.cup?'歐冠':'聯賽')+'交手'} ${H.league_here_n}${en?'':' 次'}${H.oldest?(en?', since ':'，最早 ')+yr(H.oldest):''})</span></div>`;
     const ls=H.last_season||[];
     o+=`<div class="small" style="margin-top:4px">📅 ${en?'Last season':'上賽季'} (${H.prev_season})：${ls.length?ls.map(r=>`${nm(r[2])} ${r[4]}-${r[5]} ${nm(r[3])} <span class="xs mute">${comp(r[1])}</span>`).join('；'):(en?'did not meet':'沒有交手')}</div>`;
     o+=`<div class="xs mute" style="margin-top:4px">${en?'Head-to-head history carries little predictive weight once current strength and injuries are known.':'計算了目前實力和傷停後，對賽紀錄的預測作用很小，只作參考。'}</div>`;
@@ -278,7 +281,8 @@ function ctxHtml(e){
   let b='';
   const M=x.motivation||{};const tg={'爭冠':'Title race','爭前四（歐冠）':'Top-4 race','護級':'Relegation fight','中游':'Mid-table'};
   for(const s of ['home','away']){const m=M[s];if(!m)continue;
-    b+=`<div class="small">${badge(e[s])} <b>${nm(e[s])}</b> ${en?'#'+m.pos:'第'+m.pos+'位'} · ${m.pts}${en?' pts':' 分'} · ${m.tags.map(t=>`<span class="tag ai">${en?tg[t]||t:t}</span>`).join(' ')} <span class="xs mute">${en?`${m.gap_top} off top · ${m.gap_safe} above drop · ${m.left} left`:`落後榜首 ${m.gap_top} 分 · 高於降級區 ${m.gap_safe} 分 · 尚餘 ${m.left} 場`}</span></div>`;}
+    b+=`<div class="small">${badge(e[s])} <b>${nm(e[s])}</b> ${en?'#'+m.pos:'第'+m.pos+'位'} · ${m.pts}${en?' pts':' 分'} · ${m.tags.map(t=>`<span class="tag ai">${en?tg[t]||t:t}</span>`).join(' ')} <span class="xs mute">${m.cup?(en?`${m.gap_8>0?m.gap_8+' behind 8th':'in/at top 8'} · ${m.gap_out} above 25th (out) · ${m.left} left`:`${m.gap_8>0?'落後第8名 '+m.gap_8+' 分':'位於前八或同分'} · 高於第25名（出局線）${m.gap_out} 分 · 尚餘 ${m.left} 場`):en?`${m.gap_top} off top · ${m.gap_safe} above drop · ${m.left} left`:`落後榜首 ${m.gap_top} 分 · 高於降級區 ${m.gap_safe} 分 · 尚餘 ${m.left} 場`}</span></div>`;}
+  const K=M.ko;if(K){b+=`<div class="small">🏆 <b>${en?(K.stage||''):K.stage_zh||K.stage}</b> · ${K.leg==2?(en?'2nd leg':'次回合'):K.leg==1?(en?'1st leg':'首回合'):(en?'one-off final':'單場決賽')}${K.agg?` · ${en?'1st leg':'首回合'} ${nm(K.first.home)} ${K.first.hs}-${K.first.as_} ${nm(K.first.away)} · ${en?'aggregate':'總比分'} <b>${nm(e.home)} ${K.agg[0]}-${K.agg[1]} ${nm(e.away)}</b>`:''}</div><div class="xs mute">${en?'Predictions cover 90 minutes only (no extra time / penalties).':'預測只計90分鐘，不含加時和點球。'}</div>`;}
   if(M.derby)b+=`<div class="small">🔥 <b>${en?'Derby / rivalry':'德比／宿敵戰'}</b>：${M.derby}</div>`;
   if(M.home&&M.home.early)b+=`<div class="xs mute">${en?'Early season: table position says little about motivation yet.':'賽季初段，排名對比賽動機的影響還不大。'}</div>`;
   if(x.managers)b+=`<div class="xs mute" style="margin-top:4px">${en?'Managers':'主帥'}：${esc(x.managers[0]||'?')} vs ${esc(x.managers[1]||'?')}</div>`;
@@ -305,10 +309,10 @@ function curRound(){
 function vWeek(r){
   wk=r?+r:(wk||curRound());
   const rounds=[...new Set(D.fixtures.map(e=>e.round))].sort((a,b)=>a-b);
-  let h=`<div class="chips" id="rch">${rounds.map(x=>`<a class="chip ${x==wk?'on':''}" href="#week/${x}">第${x}輪</a>`).join('')}</div>`;
+  let h=`<div class="chips" id="rch">${rounds.map(x=>`<a class="chip ${x==wk?'on':''}" href="#week/${x}">${RN(x)}</a>`).join('')}</div>`;
   const ms=D.fixtures.filter(e=>e.round==wk).sort((a,b)=>a.start-b.start);
   const done=ms.filter(e=>e.status==='finished').length;
-  h+=`<div class="small mute">第 ${wk} 輪 · ${ms.length} 場 · 已完場 ${done}</div>`;
+  h+=`<div class="small mute">${LGI.cup?RN(wk)+' ·':'第 '+wk+' 輪 ·'} ${ms.length} 場 · 已完場 ${done}</div>`;
   let lastDay='';
   for(const e of ms){const d=dayLbl(e.start);if(d!==lastDay){h+=`<div class="day">${d}</div>`;lastDay=d;}h+=matchCard(e);}
   h+=`<div class="note">所有預測只供參考，單場波動很大，不構成投注建議。時間為馬來西亞時間。AI 預測於本週第一場開賽前 1 小時發佈，之後每 12 小時及每場賽前 1 小時、30 分鐘檢查，有新資訊才修正；賽前 30 分鐘後如賠率大幅變動或首發有變，會再檢查一次。</div>`;
@@ -320,9 +324,9 @@ function vWeek(r){
 function formOf(c,n=5){return D.games.filter(g=>g.home==c||g.away==c).slice(-n).map(g=>{const h=g.home==c;const a=h?g.ft[0]:g.ft[1],b=h?g.ft[1]:g.ft[0];return a>b?'W':a==b?'D':'L'})}
 function vTable(){
   let h=`<div class="card"><table class="tbl"><tr><th>#</th><th style="text-align:left">球隊</th><th>賽</th><th>勝</th><th>平</th><th>負</th><th>得失</th><th>分</th><th>近況</th></tr>`;
-  for(const r of D.standings){const z=r.pos<=4?'zone-cl':r.pos>=18?'zone-rel':'';
+  for(const r of D.standings){const z=LGI.cup?(r.pos<=8?'zone-ko':r.pos<=24?'zone-po':'zone-rel'):r.pos<=4?'zone-cl':r.pos>=18?'zone-rel':'';
     h+=`<tr class="${z}"><td>${r.pos}</td><td class="tn"><a href="#team/${r.team}" style="color:inherit;text-decoration:none" class="row">${badge(r.team)}${nm(r.team)}</a></td><td>${r.p}</td><td>${r.w}</td><td>${r.d}</td><td>${r.l}</td><td>${r.gf-r.ga>0?'+':''}${r.gf-r.ga}</td><td><b>${r.pts}</b></td><td><span class="dots">${formOf(r.team).map(x=>`<i class="${x}"></i>`).join('')}</span></td></tr>`;}
-  app.innerHTML=h+`</table></div><div class="note">藍線：前四（歐冠資格）· 紅線：降級區。點球隊看詳情。</div>`;
+  app.innerHTML=h+`</table></div><div class="note">${LGI.cup?'綠線：前八名直接進16強 · 黃線：9-24名打淘汰附加賽 · 紅線：25名起出局。點球隊看詳情。':'藍線：前四（歐冠資格）· 紅線：降級區。點球隊看詳情。'}</div>`;
 }
 
 /* ---------- team ---------- */
