@@ -89,10 +89,21 @@ details.sub>summary .chev{color:var(--mute);transition:transform .15s}details.su
 .sec2{font-weight:700;margin:12px 0 4px;font-size:14.5px}ul.reasons{font-size:15px}
 details.more>summary{padding:10px 0;font-size:15px;border-top:1px solid var(--line)}
 .empty{padding:24px;text-align:center;color:var(--mute)}
+/* mobile layout */
+header .hrow{flex-wrap:wrap;row-gap:6px}
+header h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1 1 auto}
+header .hrow .sp{display:none}
+#lgsw{gap:4px;order:3;flex:1 0 100%;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}#lgsw::-webkit-scrollbar{display:none}
+#lgsw .chip{flex:1 0 auto;text-align:center}
+#lang{flex:none}
+@media (min-width:700px){#lgsw{order:0;flex:0 1 auto}#lgsw .chip{flex:none}header .hrow .sp{display:block}}
+nav.tabs a{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:clamp(10.5px,3.1vw,12.5px)}
+
+.tbl,.cmp{max-width:100%}
 </style>
 </head>
 <body>
-<header><div class="row"><h1>英超數據板 <span class="num">2026/27</span></h1><span class="sp"></span><span id="lgsw" class="row" style="gap:4px"></span><button id="lang" class="chip" onclick="setLang(LANG=='zh'?'en':'zh')">中文</button></div><div class="sub" id="upd">載入中…</div></header>
+<header><div class="row hrow"><h1>英超數據板 <span class="num">2026/27</span></h1><span class="sp"></span><span id="lgsw" class="row"></span><button id="lang" class="chip" onclick="setLang(LANG=='zh'?'en':'zh')">中文</button></div><div class="sub" id="upd">載入中…</div></header>
 <main id="app"></main>
 <nav class="tabs">
  <a href="#week" data-t="week"><b>⚽</b>本週</a>
