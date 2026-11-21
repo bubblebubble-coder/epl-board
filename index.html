@@ -114,14 +114,14 @@ nav.tabs a{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
  <a href="#sim" data-t="sim"><b>🧪</b>模擬</a>
 </nav>
 <script>
-let LANG='en';try{localStorage.removeItem('lang')}catch(e){}
+let LANG='en';try{LANG=localStorage.getItem('lang')=='zh'?'zh':'en'}catch(e){}document.documentElement.lang=LANG=='en'?'en':'zh-Hant';
 const LGS={epl:{file:'data.json',zh:'英超',en:'Premier League',flag:'🏴',short:'EPL'},laliga:{file:'data-laliga.json',zh:'西甲',en:'LaLiga',flag:'🇪🇸',short:'LaLiga'},seriea:{file:'data-seriea.json',zh:'意甲',en:'Serie A',flag:'🇮🇹',short:'Serie A'},ucl:{file:'data-ucl.json',zh:'歐冠',en:'Champions League',flag:'⭐',short:'UCL',cup:1}};
 const KOZ=['淘汰附加賽','16強','8強','4強','決賽'];
 const RN=r=>LGI.cup&&r>8?(KOZ[r-9]||'淘汰賽'):'第'+r+'輪';
 const LGK=LGS[new URLSearchParams(location.search).get('lg')]?new URLSearchParams(location.search).get('lg'):'epl',LGI=LGS[LGK];
 const EN_TEAM={ARS:'Arsenal',MCI:'Man City',CHE:'Chelsea',LIV:'Liverpool',MUN:'Man United',TOT:'Tottenham',AVL:'Aston Villa',BHA:'Brighton',BOU:'Bournemouth',BRE:'Brentford',COC:'Coventry',CRY:'Crystal Palace',EVE:'Everton',FUL:'Fulham',HUL:'Hull City',IPS:'Ipswich',LEE:'Leeds',NEW:'Newcastle',NFO:"Nott'm Forest",SUN:'Sunderland'};
 const F=(o,k)=>{const e=o[k+'_en'];return LANG=='en'&&e&&(Array.isArray(e)?e.length:1)?e:o[k]};
-function setLang(l){LANG=l;document.documentElement.lang=l=='en'?'en':'zh-Hant';if(D)updHeader();route();}
+function setLang(l){LANG=l;try{localStorage.setItem('lang',l)}catch(e){}document.documentElement.lang=l=='en'?'en':'zh-Hant';if(D)updHeader();route();}
 const RX=[[/第\s*(\d+)\s*輪/g,'Round $1'],[/第\s*(\d+)\s*位/g,'#$1'],[/AI 第(\d+)版/g,'AI v$1'],[/第(\d+)版/g,'v$1'],[/(\d+)勝(\d+)[和平](\d+)負/g,'$1W $2D $3L'],
  [/入(\d+) 失(\d+)/g,'GF $1 · GA $2'],[/(\d+) 分(?!鐘)/g,'$1 pts'],[/(\d+) 場 · 已完場 (\d+)/g,'$1 matches · $2 finished'],[/已完場 (\d+) 場的 AI 最後一版預測/g,'Final AI prediction for $1 finished matches'],
  [/主(\d+)\/[和平](\d+)\/客(\d+)/g,'H$1/D$2/A$3'],[/主(\d+)% [和平](\d+)% 客(\d+)%/g,'H$1% D$2% A$3%'],[/角([\d.]+)→/g,'Corners $1→'],
