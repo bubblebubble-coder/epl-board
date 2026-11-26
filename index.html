@@ -439,13 +439,28 @@ function vAcc(){
 }
 
 /* ---------- paper trading ---------- */
-let SIMT='first',CSK='value',SF={from:'',to:'',teams:[],open:false};
+let SIMT='first',CSK='value',SF={from:'',to:'',teams:[],kinds:[],lgs:null,open:false};
+const PA={};  // per-league sim data: {names, paper}; current league comes from D, others from paper-<lg>.json
+const sfL=()=>SF.lgs||[LGK];
 const sfT=v=>v?new Date(v).getTime()/1000:null;
-const sfOk=b=>{const f=sfT(SF.from),t=sfT(SF.to);if(f!=null&&b.start<f)return false;if(t!=null&&b.start>t)return false;if(SF.teams.length&&!SF.teams.includes(b.home)&&!SF.teams.includes(b.away))return false;return true};
-const sfOn=()=>!!(SF.from||SF.to||SF.teams.length);
+const kNum=/[+-]?\d+(\.\d+)?/g;
+const kKey=b=>b.market+'|'+String(b.en||'').replace(kNum,'').trim();
+const kLab=(b,en)=>{const l=String((en?b.en:b.zh)||'');return b.market=='OU2.5'?l:l.replace(kNum,'').replace(/\s+/g,' ').trim()};  // 2.5 is a fixed line, keep it in the label
+const tKey=b=>[(b.lg||LGK)+':'+b.home,(b.lg||LGK)+':'+b.away];
+const bn=(b,s)=>{const c=s?b.away:b.home;if(b.lg&&b.lg!=LGK){const n=(PA[b.lg]||{}).names||{};return n[c]||c}return nm(c)};
+const sfOk=b=>{const f=sfT(SF.from),t=sfT(SF.to);if(f!=null&&b.start<f)return false;if(t!=null&&b.start>t)return false;if(SF.teams.length&&!tKey(b).some(k=>SF.teams.includes(k)))return false;if(SF.kinds.length&&!SF.kinds.includes(kKey(b)))return false;return true};
+const sfOn=()=>!!(SF.from||SF.to||SF.teams.length||SF.kinds.length||(SF.lgs&&(SF.lgs.length!=1||SF.lgs[0]!=LGK)));
 const sfLoc=ts=>{const d=new Date(ts*1000),z=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())+'T'+z(d.getHours())+':'+z(d.getMinutes())};
 function sfDay(v){if(!v){SF.from=SF.to='';}else{const d=new Date(v+'T06:00');SF.from=sfLoc(d/1000);SF.to=sfLoc(d/1000+86400-60);}vSim()}
 function sfTeam(c,on){SF.teams=SF.teams.filter(x=>x!=c);if(on)SF.teams.push(c);vSim()}
+function sfKind(k,on){SF.kinds=SF.kinds.filter(x=>x!=k);if(on)SF.kinds.push(k);vSim()}
+async function sfLg(lg,on){let L=sfL().filter(x=>x!=lg);if(on)L.push(lg);if(!L.length)L=[LGK];SF.lgs=L;
+  if(on&&!PA[lg]){try{const r=await fetch('paper-'+lg+'.json?t='+Date.now());PA[lg]=await r.json();}catch(e){PA[lg]={names:{},paper:{}}}}
+  vSim()}
+// pool one list (getter on a paper object) across the ticked leagues, tagging each bet with its league
+function sfPool(get){PA[LGK]={names:N,paper:D.paper||{}};const out=[];
+  for(const lg of sfL()){const X=PA[lg];if(!X||!X.paper)continue;for(const b of (get(X.paper)||[]))out.push(Object.assign({},b,{lg}))}
+  return out.sort((a,b)=>a.start-b.start)}
 function sfAgg(bets){const n=bets.length,T={n};if(!n)return {total:T,by_market:{},by_conf:{},curve:[]};
   let pnl=0,w=0,pk=0,dd=0,st=0,ws=0,cl=[],ld=[],curve=[];const BM={},BC={};
   for(const b of bets){pnl+=b.pnl;curve.push(+pnl.toFixed(2));if(b.win)w++;pk=Math.max(pk,pnl);dd=Math.min(dd,pnl-pk);st=b.win===false?st+1:0;ws=Math.max(ws,st);if(b.clv!=null)cl.push(b.clv);if(b.lead!=null)ld.push(b.lead);
@@ -454,20 +469,34 @@ function sfAgg(bets){const n=bets.length,T={n};if(!n)return {total:T,by_market:{
   const m=pnl/n,sd=Math.sqrt(bets.reduce((a,b)=>a+(b.pnl-m)**2,0)/Math.max(1,n-1));
   Object.assign(T,{pnl:+pnl.toFixed(2),roi:m,wins:w,max_dd:+dd.toFixed(2),worst_streak:ws,clv:cl.length?cl.reduce((a,b)=>a+b,0)/cl.length:null,n_clv:cl.length,avg_lead:ld.length?Math.round(ld.reduce((a,b)=>a+b,0)/ld.length):null,roi_ci:n>1?[m-1.96*sd/Math.sqrt(n),m+1.96*sd/Math.sqrt(n)]:null});
   return {total:T,by_market:BM,by_conf:BC,curve}}
-function sfBox(P0,en){const all=[...(P0.bets||[]),...Object.values(P0.tracks||{}).flatMap(t=>t.bets||[]),...(P0.open||[]),...(P0.open_first||[]),...(P0.live||[]),...Object.values((P0.cs||{}).tracks||{}).flatMap(t=>t.bets||[]),...((P0.cs||{}).open||[])];
-  const tm=[...new Set(all.flatMap(b=>[b.home,b.away]))].sort((a,b)=>String(nm(a)).localeCompare(String(nm(b))));
+// per pick type: hit rate vs break-even (average 1/odds of the settled bets)
+function kindTbl(bets,en){const K={};
+  for(const b of bets){const k=kKey(b),x=K[k]=K[k]||{lab:kLab(b,en),n:0,w:0,s:0,be:0,pnl:0};x.n++;x.pnl+=b.pnl;if(b.win!=null){x.s++;x.be+=1/b.odds;if(b.win)x.w++}}
+  const e=Object.values(K).sort((a,b)=>b.n-a.n);if(!e.length)return '';
+  const pc=x=>x==null?'–':Math.round(x*100)+'%',u=x=>(x>0?'+':'')+(+x).toFixed(2);
+  return `<div class="sec">${en?'By pick type':'按注項'}</div><div class="card"><table class="tbl"><tr><th style="text-align:left;padding-left:10px">${en?'Pick':'注項'}</th><th>${en?'Bets':'注'}</th><th>${en?'Won':'贏'}</th><th>${en?'Hit':'猜中'}</th><th>${en?'Break-even':'保本線'}</th><th>${en?'Profit':'盈虧'}</th><th>ROI</th></tr>${e.map(x=>{const h=x.s?x.w/x.s:null,be=x.s?x.be/x.s:null;return `<tr><td class="tn" style="padding-left:10px">${esc(x.lab)}</td><td>${x.n}</td><td>${x.w}</td><td style="color:${h==null?'inherit':h>be?'var(--win)':'var(--loss)'}">${pc(h)}</td><td>${pc(be)}</td><td>${u(x.pnl)}</td><td>${x.n?(x.pnl>0?'+':'')+Math.round(x.pnl/x.n*100)+'%':'–'}</td></tr>`}).join('')}</table></div><div class="xs mute" style="margin:4px 2px 0">${en?'Hit = share of settled bets won (pushes excluded). Break-even = average of 1 ÷ odds: the hit rate needed just to break even. Green = above break-even. Asian lines can half-win, so their hit rate is approximate.':'猜中 = 已結算注數中贏的比例（走盤不計）。保本線 = 每注 1 ÷ 賠率的平均，也就是剛好不賺不虧所需的猜中率。綠色 = 高於保本線。亞洲盤有贏一半的情況，猜中率只是近似。'}</div>`}
+function sfBox(P0,en){PA[LGK]={names:N,paper:D.paper||{}};
+  const all=sfPool(P=>[...(P.bets||[]),...Object.values(P.tracks||{}).flatMap(t=>t.bets||[]),...(P.open||[]),...(P.open_first||[]),...(P.live||[]),...Object.values((P.cs||{}).tracks||{}).flatMap(t=>t.bets||[]),...((P.cs||{}).open||[])]);
+  const multi=sfL().length>1||sfL()[0]!=LGK;
+  const tm=[...new Map(all.flatMap(b=>[[tKey(b)[0],bn(b,0)+(multi?' ('+(LGS[b.lg]||{}).short+')':'')],[tKey(b)[1],bn(b,1)+(multi?' ('+(LGS[b.lg]||{}).short+')':'')]])).entries()].sort((a,b)=>String(a[1]).localeCompare(String(b[1])));
+  const kd=[...new Map(all.filter(b=>b.market!='cs').map(b=>[kKey(b),kLab(b,en)])).entries()].sort((a,b)=>a[0].localeCompare(b[0]));
   const days=[...new Set(all.map(b=>sfLoc(b.start-6*3600).slice(0,10)))].sort().reverse();
   const curDay=days.find(d=>SF.from==d+'T06:00'&&SF.to==sfLoc(new Date(d+'T06:00')/1000+86400-60))||'';
-  return `<div class="card pad small"><div onclick="SF.open=!SF.open;vSim()" style="cursor:pointer"><b>🔎 ${en?'Filter':'篩選'}</b>${sfOn()?` <span class="tag ai">${en?'on':'已啟用'}</span> <a style="color:var(--acc)" href="javascript:void 0" onclick="event.stopPropagation();SF.from=SF.to='';SF.teams=[];vSim()">${en?'clear':'清除'}</a>`:''} <span class="mute">${SF.open?'▲':'▼'}</span></div>${SF.open?`
+  const ck=(on,fn,lab)=>`<label><input type="checkbox" ${on?'checked':''} onchange="${fn}"> ${lab}</label>`;
+  return `<div class="card pad small"><div onclick="SF.open=!SF.open;vSim()" style="cursor:pointer"><b>🔎 ${en?'Filter':'篩選'}</b>${sfOn()?` <span class="tag ai">${en?'on':'已啟用'}</span> <a style="color:var(--acc)" href="javascript:void 0" onclick="event.stopPropagation();SF.from=SF.to='';SF.teams=[];SF.kinds=[];SF.lgs=null;vSim()">${en?'clear':'清除'}</a>`:''} <span class="mute">${SF.open?'▲':'▼'}</span></div>${SF.open?`
+  <div style="margin-top:8px">${en?'Leagues':'聯賽'}<div style="display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px">${Object.keys(LGS).map(k=>ck(sfL().includes(k),`sfLg('${k}',this.checked)`,en?LGS[k].en:LGS[k].zh)).join('')}</div></div>
+  <div style="margin-top:8px">${en?'Pick type (any that has appeared)':'注項（曾出現過的都可選）'}<div style="display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px">${kd.map(([k,l])=>ck(SF.kinds.includes(k),`sfKind('${k.replace(/'/g,"\\'")}',this.checked)`,esc(l))).join('')}</div></div>
   <div style="margin-top:8px">${en?'Match day (06:00 to 05:59 next day, so late kick-offs count as the same day)':'比賽日（早上 06:00 至翌日 05:59，凌晨開賽算同一天）'}<br><select onchange="sfDay(this.value)"><option value="">${en?'— any —':'— 不限 —'}</option>${days.map(d=>`<option value="${d}" ${d==curDay?'selected':''}>${d} ${new Date(d+'T12:00').toLocaleDateString(en?'en-GB':'zh-TW',{weekday:'short'})}</option>`).join('')}</select></div>
   <div style="margin-top:8px">${en?'Or custom range (kick-off time)':'或自訂範圍（開賽時間）'}<br>${en?'From':'由'} <input type="datetime-local" value="${SF.from}" onchange="SF.from=this.value;vSim()"> ${en?'to':'至'} <input type="datetime-local" value="${SF.to}" onchange="SF.to=this.value;vSim()"></div>
-  <div style="margin-top:8px">${en?'Teams (any match involving a ticked team)':'球隊（包含任一已勾選球隊的比賽）'}<div style="display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px">${tm.map(c=>`<label><input type="checkbox" ${SF.teams.includes(c)?'checked':''} onchange="sfTeam('${c}',this.checked)"> ${nm(c)}</label>`).join('')}</div></div>`:''}</div>`}
+  <div style="margin-top:8px">${en?'Teams (any match involving a ticked team)':'球隊（包含任一已勾選球隊的比賽）'}<div style="display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px">${tm.map(([c,l])=>ck(SF.teams.includes(c),`sfTeam('${c.replace(/'/g,"\\'")}',this.checked)`,esc(l))).join('')}</div></div>`:''}</div>`}
 function vSim(){
   const P0=D.paper||{},en=LANG=='en',TR=SIMT,CS=TR=='cs',C0=P0.cs||{};
   let P=CS?Object.assign({total:{n:0},bets:[],curve:[]},(C0.tracks||{})[CSK]||{},{edge:C0.edge,min_n:100}):Object.assign({},P0,(P0.tracks||{})[TR]||(TR=='final'?{}:{total:{n:0},bets:[],curve:[]}));
-  if(sfOn()){const fb=(P.bets||[]).filter(sfOk);P=Object.assign({},P,sfAgg(fb),{bets:fb,coverage:null});}
+  const getB=CS?(X=>(((X.cs||{}).tracks||{})[CSK]||{}).bets):(X=>((X.tracks||{})[TR]||{}).bets||(TR=='final'?X.bets:[]));
+  if(sfOn()){const fb=sfPool(getB).filter(sfOk);P=Object.assign({},P,sfAgg(fb),{bets:fb,coverage:null});}
+  const LT=b=>(b.lg&&b.lg!=LGK)?` <span class="xs mute">${(LGS[b.lg]||{}).short||b.lg}</span>`:'';
   const T=P.total||{n:0};
-  const MK={'goals':['Goals line','進球大小'],'1X2':['Win/draw/loss','勝平負'],'OU2.5':['Over/under 2.5','大小2.5球'],'BTTS':['Both teams score','雙方進球'],corners:['Corners line','角球大小'],cards:['Cards line','黃牌大小'],cs:['Correct score','正確比分']};
+  const MK={'goals':['Goals line','進球大小'],'1X2':['Win/draw/loss','勝平負'],'OU2.5':['Over/under 2.5','大小2.5球'],'BTTS':['Both teams score','雙方進球'],corners:['Corners line','角球大小'],cards:['Cards line','黃牌大小'],cs:['Correct score','正確比分'],goals_main:['Main goals line','主盤大小球'],DC:['Double chance','雙重機會'],H1X2:['1st-half 1X2','上半場勝平負'],AH:['Asian handicap','亞洲讓球'],g1:['1st-half goals','上半場大小球']};
   const pct=x=>x==null?'–':(x>0?'+':'')+Math.round(x*100)+'%';
   const u=x=>(x>0?'+':'')+(+x).toFixed(2);
   const TN={first:['🔒 First bet (locked)','🔒 首注（鎖定）'],final:['Final pre-kickoff','臨場版'],ht:['⏸️ Half-time','⏸️ 半場'],cs:['🎯 Correct score','🎯 正確比分']};
@@ -497,13 +526,13 @@ function vSim(){
     h+=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:100px;margin-top:10px"><line x1="0" x2="${W}" y1="${sy(0)}" y2="${sy(0)}" stroke="var(--line)"/><polyline fill="none" stroke="var(--acc)" stroke-width="2" points="${c.map((y,i)=>sx(i)+','+sy(y)).join(' ')}"/></svg><div class="xs mute">${en?'Cumulative profit (units)':'累積盈虧（注）'}</div>`;}
   h+='</div>';
   const tbl=(o,lab)=>{const e=Object.entries(o||{});if(!e.length)return '';return `<div class="sec">${lab}</div><div class="card"><table class="tbl"><tr><th style="text-align:left;padding-left:10px">${en?'Type':'類別'}</th><th>${en?'Bets':'注'}</th><th>${en?'Won':'贏'}</th><th>${en?'Profit':'盈虧'}</th><th>ROI</th></tr>${e.map(([k,x])=>`<tr><td class="tn" style="padding-left:10px">${k in MK?MK[k][en?0:1]:(en?{高:'High',中:'Med',低:'Low'}[k]+' conf.':'信心'+k)}</td><td>${x.n}</td><td>${x.wins}</td><td>${u(x.pnl)}</td><td>${pct(x.roi)}</td></tr>`).join('')}</table></div>`};
-  h+=(CS?'':tbl(P.by_market,en?'By market':'按盤口'))+tbl(P.by_conf,en?'By AI confidence':'按 AI 信心');
-  const O=(CS?(C0.open||[]).filter(b=>b.kind==CSK):TR=='first'?(P0.open_first||[]):TR=='final'?(P0.open||[]):null)?.filter(sfOk)||null;
-  if(O)h+=`<div class="sec">${en?'Open virtual bets (upcoming)':'未開賽的模擬注'}</div><div class="card">`+(O.length?O.map(b=>`<div class="gl" style="grid-template-columns:44px 1fr auto"><span class="small mute">${md(b.start)}</span><span>${nm(b.home)} v ${nm(b.away)}<div class="xs"><b>${en?b.en:b.zh}</b> @ ${b.odds} · AI ${Math.round(b.p*100)}% · ${en?'edge':'優勢'} ${pct(b.edge)}</div></span><span class="tag ai">${en?'open':'待結算'}</span></div>`).join(''):`<div class="empty small">${en?'None — the AI does not currently disagree enough with the odds on any upcoming match.':'暫時沒有：AI 目前對未開賽的比賽，沒有跟賠率差得夠多的判斷。'}</div>`)+'</div>';
-  const LV=(CS?(C0.live||[]).filter(b=>b.kind==CSK):(P0.live||[]).filter(b=>(b.track||'final')==TR)).filter(sfOk);
-  if(LV.length)h+=`<div class="sec">${en?'Virtual bets in play':'比賽中的模擬注'}</div><div class="card">`+LV.map(b=>`<div class="gl" style="grid-template-columns:44px 1fr auto"><span class="small mute">${hm(b.start)}</span><span>${nm(b.home)} <b class="num">${b.hs??'–'}-${b.as_??'–'}</b> ${nm(b.away)}<div class="xs"><b>${en?b.en:b.zh}</b> @ ${b.odds} · AI ${Math.round(b.p*100)}% · ${en?'edge':'優勢'} ${pct(b.edge)}</div></span><span class="tag ai">${b.status=='finished'?(en?'FT · settling':'完場・結算中'):(b.desc&&/half/i.test(b.desc)&&!/1st|2nd/i.test(b.desc)?(en?'HT':'半場'):(en?'LIVE':'進行中'))}</span></div>`).join('')+'</div>';
+  h+=(CS?'':tbl(P.by_market,en?'By market':'按盤口')+kindTbl(P.bets||[],en)+`<div class="xs mute" style="margin:6px 2px 0">${en?'Markets added 26 Nov 2026 (no extra AI cost, derived from the AI\'s existing numbers): main goals line (the bookmaker\'s most balanced line, e.g. 3.5 in lopsided games; the 2.5 line is kept separately), double chance, Asian handicap (bet365 main line), 1st-half 1X2, 1st-half goals (22Bet main line). 1st-half corners: no bookmaker odds available from our sources, so not simulated.':'2026-11-26 新增注項（不用額外 AI，由 AI 現有數字推算）：主盤大小球（莊家最平衡的那條線，例如實力懸殊時是 3.5；原有的 2.5 另外保留）、雙重機會、亞洲讓球（bet365 主盤）、上半場勝平負、上半場大小球（22Bet 主盤）。上半場角球：我們的資料來源沒有這個盤口的賠率，所以無法模擬。'}</div>`)+tbl(P.by_conf,en?'By AI confidence':'按 AI 信心');
+  const O=(CS?sfPool(X=>(X.cs||{}).open).filter(b=>b.kind==CSK):TR=='first'?sfPool(X=>X.open_first):TR=='final'?sfPool(X=>X.open):null)?.filter(sfOk)||null;
+  if(O)h+=`<div class="sec">${en?'Open virtual bets (upcoming)':'未開賽的模擬注'}</div><div class="card">`+(O.length?O.map(b=>`<div class="gl" style="grid-template-columns:44px 1fr auto"><span class="small mute">${md(b.start)}</span><span>${bn(b,0)} v ${bn(b,1)}${LT(b)}<div class="xs"><b>${en?b.en:b.zh}</b> @ ${b.odds} · AI ${Math.round(b.p*100)}% · ${en?'edge':'優勢'} ${pct(b.edge)}</div></span><span class="tag ai">${en?'open':'待結算'}</span></div>`).join(''):`<div class="empty small">${en?'None — the AI does not currently disagree enough with the odds on any upcoming match.':'暫時沒有：AI 目前對未開賽的比賽，沒有跟賠率差得夠多的判斷。'}</div>`)+'</div>';
+  const LV=(CS?sfPool(X=>(X.cs||{}).live).filter(b=>b.kind==CSK):sfPool(X=>X.live).filter(b=>(b.track||'final')==TR)).filter(sfOk);
+  if(LV.length)h+=`<div class="sec">${en?'Virtual bets in play':'比賽中的模擬注'}</div><div class="card">`+LV.map(b=>`<div class="gl" style="grid-template-columns:44px 1fr auto"><span class="small mute">${hm(b.start)}</span><span>${bn(b,0)} <b class="num">${b.hs??'–'}-${b.as_??'–'}</b> ${bn(b,1)}${LT(b)}<div class="xs"><b>${en?b.en:b.zh}</b> @ ${b.odds} · AI ${Math.round(b.p*100)}% · ${en?'edge':'優勢'} ${pct(b.edge)}</div></span><span class="tag ai">${b.status=='finished'?(en?'FT · settling':'完場・結算中'):(b.desc&&/half/i.test(b.desc)&&!/1st|2nd/i.test(b.desc)?(en?'HT':'半場'):(en?'LIVE':'進行中'))}</span></div>`).join('')+'</div>';
   const B=[...(P.bets||[])].reverse();
-  if(B.length)h+=`<div class="sec">${en?'Settled bets':'已結算'}</div><div class="card">`+B.map(b=>`<div class="gl" style="grid-template-columns:44px 1fr auto auto"><span class="small mute">${md(b.start)}</span><span>${nm(b.home)} v ${nm(b.away)}<div class="xs"><b>${en?b.en:b.zh}</b> @ ${b.odds} · AI ${Math.round(b.p*100)}%${b.clv!=null?' · CLV '+pct(b.clv):''}${b.bk?' · '+b.bk:''}${b.lead!=null?(en?' · '+b.lead+'h before':' · 賽前 '+b.lead+' 小時'):''}</div></span><span class="num">${u(b.pnl)}</span><span class="res ${b.win==null?'D':b.win?'W':'L'}">${b.win==null?'–':b.win?'✓':'✗'}</span></div>`).join('')+'</div>';
+  if(B.length)h+=`<div class="sec">${en?'Settled bets':'已結算'}</div><div class="card">`+B.map(b=>`<div class="gl" style="grid-template-columns:44px 1fr auto auto"><span class="small mute">${md(b.start)}</span><span>${bn(b,0)} v ${bn(b,1)}${LT(b)}<div class="xs"><b>${en?b.en:b.zh}</b> @ ${b.odds} · AI ${Math.round(b.p*100)}%${b.clv!=null?' · CLV '+pct(b.clv):''}${b.bk?' · '+b.bk:''}${b.lead!=null?(en?' · '+b.lead+'h before':' · 賽前 '+b.lead+' 小時'):''}</div></span><span class="num">${u(b.pnl)}</span><span class="res ${b.win==null?'D':b.win?'W':'L'}">${b.win==null?'–':b.win?'✓':'✗'}</span></div>`).join('')+'</div>';
   app.innerHTML=h;
 }
 
