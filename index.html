@@ -177,7 +177,7 @@ const $=s=>document.querySelector(s);
 const tz='Asia/Kuala_Lumpur';
 const fmt=(ts,o)=>new Intl.DateTimeFormat(LANG=='en'?'en-GB':'zh-Hant',Object.assign({timeZone:tz},o)).format(new Date(ts*1000));
 const hm=ts=>fmt(ts,{hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
-const hm12=ts=>fmt(ts,{hour:'numeric',minute:'2-digit',hour12:true});
+const hm12=ts=>new Intl.DateTimeFormat('en-US',{timeZone:tz,hour:'numeric',minute:'2-digit',hour12:true}).format(new Date(ts*1000));  // '11:00 PM' in both languages
 const md=ts=>fmt(ts,{month:'numeric',day:'numeric'});
 const dayLbl=ts=>fmt(ts,{month:'long',day:'numeric',weekday:'short'});
 const stamp=ts=>md(ts)+' '+hm(ts);
